@@ -1,0 +1,144 @@
+CRITICAL RULE:
+Do NOT touch anything that is currently working.
+No data loss. No full rewrites. Read existing code first.
+This is a surgical fix — only the tab/navigation loading issue.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM STATEMENT
+
+Both the Admin Portal and the Store Owner (Seller) Portal are
+behaving like multi-page applications. Every time a tab or
+section is clicked in the left sidebar, the entire page
+reloads — the full application remounts, the sidebar
+re-renders, and all state is lost.
+
+This must NEVER happen. Both portals must behave as true
+Single Page Applications (SPA). The left sidebar/panel must
+stay completely static and unchanged during tab switches.
+Only the main content area on the right should change.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ROOT CAUSE — INVESTIGATE IN THIS ORDER
+
+Step 1 — Check navigation method:
+Search for window.location.href, window.location.replace,
+window.location.assign, window.location.reload anywhere
+inside tab click handlers or sidebar navigation links.
+If found → replace with React Router navigate() or
+set active tab via useState. This is the most common cause.
+
+Step 2 — Check router structure:
+Open the Admin portal layout file and Seller portal layout file.
+Verify that  or  is NOT wrapping just
+the content area — it must wrap the ENTIRE app once at the
+root level only. Multiple Router instances cause full remounts.
+
+Step 3 — Check if tabs are separate routes or state-driven:
+- If tabs are implemented as separate /admin/products,
+  /admin/orders etc. routes — this is fine IF the layout
+  component (sidebar + content wrapper) is shared and does
+  NOT remount on route change. Verify the layout is outside
+  the  block, not inside it.
+- If layout IS inside , move it outside so it
+  persists across all child routes.
+
+Step 4 — Check for useEffect or key prop causing remounts:
+Look for key={currentTab} or key={route} on the main layout
+or sidebar component. A changing key forces full remount.
+Remove any key prop from persistent layout components.
+
+Step 5 — Check for hard reloads in auth/session checks:
+Some auth guards call window.location.reload() after verifying
+session. If found inside the portal layout, replace with
+conditional rendering instead.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+REQUIRED BEHAVIOR AFTER FIX
+
+Admin Portal:
+- User logs in once → full app loads once.
+- Clicking any sidebar tab (Dashboard, Stores, Products,
+  Orders, Users, CMS, etc.) → ONLY the right content area
+  changes. Zero reload. Zero remount of sidebar or header.
+- The active tab highlight in the sidebar updates instantly.
+- No spinner, no flash, no blank screen between tabs.
+- Scroll position of sidebar must be preserved during
+  tab switches.
+
+Seller Portal:
+- Exact same behavior as above.
+- Clicking any sidebar item (Dashboard, Orders, Products,
+  Inventory, Settings, etc.) → only content area changes.
+- Sidebar stays completely still and stable.
+- No reload. No remount. No flash.
+
+Both portals:
+- Data for each tab/section loads via API call AFTER the
+  tab renders — show a skeleton loader or spinner inside
+  the content area only while data loads.
+- The sidebar, header, and layout chrome must NEVER show
+  a loading state during tab switches.
+- Browser back/forward buttons must still navigate between
+  tabs correctly if tabs are route-based.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMPLEMENTATION PATTERN — USE THIS IF RESTRUCTURING NEEDED
+
+If tabs are currently route-based (recommended approach):
+
+// App.jsx or root router — layout wraps ALL admin routes
+}>
+  } />
+  } />
+  } />
+  } />
+  // ...all other admin tabs
+
+
+// AdminLayout.jsx — sidebar + header are rendered ONCE
+//  is where tab content swaps — nothing else changes
+function AdminLayout() {
+  return (
+    
+
+               // renders once, never remounts
+      
+
+                // renders once, never remounts
+                     // only this area changes on tab switch
+      
+
+    
+
+  )
+}
+
+Apply the exact same pattern for the Seller portal under /seller.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION STEPS — CHECK THESE AFTER FIXING
+
+1. Open Admin portal → go to Dashboard tab.
+2. Open browser DevTools → Network tab → clear log.
+3. Click "Stores" tab in sidebar.
+4. Verify: only API calls appear in Network tab.
+   No full HTML page reload. No JS bundle reload.
+5. The sidebar must not flicker or re-render at all.
+6. Repeat for every single tab in Admin portal.
+7. Repeat steps 1–6 for Seller portal.
+8. Open React DevTools → Components tab.
+   Confirm AdminLayout and AdminSidebar do NOT unmount/remount
+   during any tab switch.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL REMINDER:
+- Fix Admin portal first, verify fully, then fix Seller portal.
+- Do not change any working functionality, data, or API logic.
+- Do not cause any data loss.
+- No full rewrites — only fix the navigation/routing structure.

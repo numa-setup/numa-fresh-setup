@@ -1,0 +1,53 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. This is a sensitive structural change — work carefully and surgically. Do not break any existing functionality, routes, dashboards, or portals.
+
+Objective: Separate & Secure the Admin Login
+Currently the admin panel is accessible in a way that is not fully separate or secure. The goal is to make the admin login completely isolated and private — not accessible from the public-facing website in any way.
+
+Required Implementation:
+1. Admin Panel Route
+The Admin Panel must be accessible only via:
+/admin
+When someone visits /admin, they should see a professional, standalone Admin Login page — completely separate from the customer website or any other portal's login.
+2. Admin Login Page
+
+Must be a dedicated, clean, professional login page — not shared with customer or store owner login.
+Should have no connection to or visual similarity with the public website.
+Only valid admin credentials should allow access.
+After successful login, admin is taken to the Admin Dashboard as usual.
+
+3. No Public Access or Link
+
+There must be no link, button, or reference to the Admin Panel anywhere on the public customer website or the store owner portal.
+The /admin route should only be known and accessible to authorized admins.
+If an unauthorized user tries to access /admin or any /admin/* route directly, they must be redirected to the admin login page — never to the dashboard.
+
+4. Session & Auth Protection
+
+All /admin/* routes must be fully protected.
+If an admin is not logged in and tries to access any admin route, redirect them to /admin login page.
+Admin session must persist correctly so the admin does not get logged out unexpectedly.
+Do not interfere with customer or store owner sessions in any way.
+
+5. Existing Admin Functionality Must Remain Intact
+
+Everything inside the Admin Panel — Store Management, CMS, Audit Log, Announcements, Products, Reviews, etc. — must continue to work exactly as before.
+Only the login entry point and route protection are being changed.
+No data, no features, no existing logic should be affected.
+
+6. No Impact on Other Portals
+
+Customer website login/signup must remain completely unaffected.
+Store Owner Portal login must remain completely unaffected.
+Only the Admin login is being separated and secured.
+
+
+Summary of What Changes:
+
+/admin → Standalone Admin Login Page
+All /admin/* routes → Protected, redirect to /admin if not authenticated
+No public link to admin anywhere
+Everything else stays exactly the same
+
+
+Again — be extremely careful. Do not break anything. Only implement the admin login separation as described above.

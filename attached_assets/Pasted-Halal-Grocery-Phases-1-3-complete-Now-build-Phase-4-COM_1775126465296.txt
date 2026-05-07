@@ -1,0 +1,184 @@
+Halal Grocery — Phases 1-3 complete.
+Now build Phase 4: COMPLETE ADMIN PANEL (/admin)
+
+Design: Clean, data-dense dashboard.
+Same color system. Sidebar navigation. Full desktop layout.
+All routes protected by ADMIN role.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN DASHBOARD (/admin)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KPI Cards (top row):
+Today's GMV | Total Orders | Active Stores | 
+Platform Revenue | Pending Approvals | Open Tickets
+
+Charts:
+- GMV trend (area chart — 30 days)
+- Orders per day (bar chart)
+- Revenue by source: commission / convenience fees (stacked)
+- Store performance comparison
+- New user signups (line chart)
+
+Live Activity Feed (right sidebar):
+Real-time Socket.io events:
+- "New order #HG-2847 — $67.50"
+- "Store 'Al-Noor Meats' went online"
+- "Refund requested — order #HG-2801"
+Color coded by event type.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORE MANAGEMENT (/admin/stores)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tabs: Pending Approval | Active | Inactive | All
+
+PENDING APPROVAL:
+Each pending store shows full details:
+- Business info, address, hours
+- Halal cert doc viewer (PDF/image)
+- Previous rejection notes (if any)
+[APPROVE] → store goes live, owner notified
+[REJECT] → required reason → owner notified with reason
+[REQUEST More Info] → message to owner
+
+ACTIVE STORES TABLE:
+Columns: Logo | Name | City | Rating | Orders | Revenue | 
+         Commission | Status | Last Active | Actions
+
+Actions per store:
+- View full profile
+- Edit commission rate
+- Suspend (with reason + duration)
+- View analytics
+- Trigger manual payout
+
+STORE DETAIL MODAL:
+Full store info + performance charts + order history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ORDER MANAGEMENT (/admin/orders)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Full order table with all filters:
+Status | Store | Date Range | Order Type | Amount Range
+
+Order detail view (all info):
+- Full item list with meat specs + actual weights
+- Status history timeline
+- All fees breakdown
+- Payment info (Stripe payment ID)
+- Chat history
+- Action buttons:
+  * Issue Refund (partial or full, with reason)
+  * Cancel Order (if cancellable)
+  * Force Complete
+  * View Stripe Dashboard link
+
+REFUND QUEUE:
+Pending refund requests list:
+- Customer request reason
+- Order details
+- Amount requested
+[Approve Full] [Approve Partial — enter amount] [Reject + reason]
+All refund actions trigger Stripe refund API.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+USER MANAGEMENT (/admin/users)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Filter by role: All | Customer | Store Owner | Staff | Admin
+
+Table: Avatar | Name | Email | Role | Status | 
+       Orders | Joined | Last Active | Actions
+
+Actions: View Profile | Suspend | Ban | Verify | Change Role
+
+User Detail: full profile + order history + support tickets
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINANCE (/admin/finance)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Revenue Overview:
+- Total GMV (period selector)
+- Commission collected
+- Convenience fees collected
+- Total revenue
+- Outstanding store payouts
+
+Store Payouts Tab:
+Table: Store | Period | Gross | Commission | Net | Status
+[Trigger Payout] → calls Stripe Transfer API
+Bulk payout: select multiple → process all
+
+Platform Financial Report:
+- Monthly P&L breakdown
+- Export as CSV/Excel
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PLATFORM SETTINGS (/admin/settings)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Default commission rate (%)
+- Default convenience fee
+- Default curbside fee
+- Loyalty points rate (points per $1)
+- Subscription plan pricing
+- Payout schedule (weekly/bi-weekly)
+- Supported cities (add/remove)
+- Platform-wide maintenance mode
+- Email template editor (WYSIWYG)
+- SMS template editor
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONTENT MANAGEMENT (/admin/content)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Homepage banners: upload, link URL, EN/UR text, reorder
+- Featured stores: drag-drop reorder
+- Eid/seasonal banners: date-scheduled visibility
+- Blog posts (basic CMS) — future SEO content
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANALYTICS (/admin/analytics)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All platform-wide analytics:
+- Cohort retention (users by signup month)
+- City-by-city breakdown
+- Store performance league table
+- Product category demand analysis
+- Order type distribution
+- Seasonal trends (Eid spike, Ramadan, etc.)
+Export any chart as PNG or data as CSV.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUPPORT (/admin/support)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ticket queue: Open | In Progress | Resolved
+Each ticket: user info, order link, message thread
+Admin can reply, close, escalate
+Canned responses for common issues
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AUDIT LOG (/admin/audit)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Every admin action logged:
+Admin | Action | Target | Old Value | New Value | Time | IP
+Filter + search + export CSV.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN APIs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET    /api/admin/dashboard
+GET    /api/admin/stores?status=pending
+PATCH  /api/admin/stores/[id]/approve
+PATCH  /api/admin/stores/[id]/reject
+PATCH  /api/admin/stores/[id]/suspend
+GET    /api/admin/orders?filters
+POST   /api/admin/orders/[id]/refund
+GET    /api/admin/users
+PATCH  /api/admin/users/[id]/suspend
+PATCH  /api/admin/users/[id]/ban
+GET    /api/admin/finance/overview
+POST   /api/admin/finance/trigger-payout
+GET    /api/admin/analytics/[metric]
+GET    /api/admin/settings
+PUT    /api/admin/settings
+POST   /api/admin/content/banners
+GET    /api/admin/support/tickets
+POST   /api/admin/support/tickets/[id]/reply
+GET    /api/admin/audit-log

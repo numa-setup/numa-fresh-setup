@@ -1,0 +1,56 @@
+I have an existing running system. I need to add ONLY one functionality.
+Do not touch, modify, or break anything that already exists.
+
+## TASK:
+Add real-time location-based store filtering for this existing section:
+"Near You - Halal Stores Near You"
+There is already an "Enable Location Access" button in this section.
+
+## WHAT TO BUILD:
+
+### Frontend:
+- Connect the existing "Enable Location Access" button to browser 
+  Geolocation API
+- Show loading state while fetching location
+- Send retrieved lat/lng to the new backend endpoint
+- Display nearby stores sorted by distance (nearest first)
+- Each store card should show: name, address, distance in miles
+- If location denied → show: "Please enable location to see stores near you"
+- If no stores nearby → show: "No halal stores found near your location"
+- Use watchPosition so list updates if user location changes
+
+### Backend:
+- Create ONE new route: GET /api/nearby-stores
+- Accept: ?lat=XX.XX&lng=XX.XX&radius=10 (radius in miles, default 10)
+- Use Haversine formula to calculate distances
+- Return stores sorted by nearest first in this format:
+  {
+    "success": true,
+    "stores": [
+      {
+        "id": "",
+        "name": "",
+        "address": "",
+        "distance": 2.4,
+        "isOpen": true
+      }
+    ]
+  }
+
+### Database:
+- Check if stores already have lat and lng fields
+- If not → add ONLY lat and lng fields, nothing else
+- Add sample halal store data with US coordinates for testing
+
+## STRICT RULES - MUST FOLLOW:
+- DO NOT modify any existing files unless there is absolutely no other way
+- DO NOT change any existing routes, components, or database structure
+- DO NOT touch authentication, cart, checkout, or any other feature
+- Only ADD new code, create new files wherever possible
+- Auto-detect existing stack and match it exactly
+- New code must be fully self-contained and modular
+
+## GOAL:
+User clicks "Enable Location Access" → browser asks permission → 
+user allows → nearby halal stores appear in that section sorted 
+by distance → zero impact on rest of the system.

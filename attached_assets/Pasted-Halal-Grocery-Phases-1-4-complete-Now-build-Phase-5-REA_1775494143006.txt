@@ -1,0 +1,277 @@
+Halal Grocery — Phases 1-4 complete.
+Now build Phase 5: REAL-TIME ENGINE + PAYMENTS + 
+NOTIFICATIONS + CRON JOBS + PRODUCTION HARDENING
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. SOCKET.IO — Complete Implementation
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Namespace: /customer
+- authenticate middleware (verify JWT on connect)
+- join room: order:{orderId}
+Events received from customer:
+  'send_message' → save to OrderMessage, emit to store
+  'substitution_response' → update DB, notify store
+  'im_here_curbside' → notify store, update order
+Events emitted to customer:
+  'order_status' → any status change
+  'new_message' → from store
+  'substitution_request' → approval needed
+  'order_ready' → with QR code data
+
+Namespace: /store
+- authenticate + verify store ownership
+- join rooms: store:{storeId}, order:{orderId}
+Events received from store:
+  'order_status_update' → update DB + notify customer
+  'item_status_update' → update OrderItem
+  'meat_weight_update' → recalculate, update PaymentIntent
+  'substitution_request' → notify customer
+  'send_message' → save, emit to customer
+  'mark_ready' → update status, send notifications
+  'curbside_delivered' → complete order
+Events emitted to store:
+  'new_order' → with full order data + sound trigger
+  'order_cancelled' → customer cancelled
+  'substitution_approved/rejected' → customer response
+  'customer_arrived' → curbside I'm Here pressed
+  'new_message' → from customer
+
+Namespace: /admin
+- Admin only
+- join room: 'admin_global'
+Events emitted to admin:
+  'new_order' → platform-wide new order
+  'store_online/offline' → store status change
+  'refund_requested' → needs attention
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. STRIPE — Complete Integration
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Order Payment Flow:
+1. Customer places order → create PaymentIntent
+   - amount = estimated total (includes meat estimate)
+   - capture_method = 'manual' (pre-authorization)
+   - metadata = { orderId, customerId, storeId }
+2. Frontend confirms payment with Stripe.js
+3. Payment authorized (not yet captured)
+4. If no fresh meat → auto-capture immediately
+5. If fresh meat → capture after store enters final weight
+   - PATCH /api/payments/capture → Stripe capture API
+   - Amount updated to final weight calculation
+
+Webhook: /api/payments/webhook
+Handle events:
+- payment_intent.succeeded → confirm order, notify store
+- payment_intent.payment_failed → notify customer
+- payment_intent.canceled → cancel order
+- charge.refunded → update DB, notify customer
+
+Stripe Connect (store payouts):
+- /api/store/connect/onboard → create Connect account link
+- /api/admin/finance/trigger-payout:
+  Calculate: gross - commission = net
+  Create Stripe Transfer to store's Connect account
+  Record in StorePayout table
+
+Subscriptions:
+- Create Stripe Customer on signup
+- /api/subscriptions/subscribe → create Stripe Subscription
+- Webhooks: customer.subscription.updated/deleted
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. NOTIFICATION SYSTEM — Complete
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Every notification: in-app (DB) + email + optional SMS
+
+Customer notifications:
+- Order confirmed → email + in-app
+- Order in preparation → in-app + push
+- Substitution request → push + SMS + in-app
+- Order ready for pickup → push + SMS + email
+  SMS: "Your Halal Grocery order is ready! 
+  Show QR code at [Store Name], [Address]. Order #HG-XXXX"
+- Curbside: order coming to vehicle → push + SMS
+- Order completed → email receipt + in-app
+- Refund processed → email + in-app
+- Loyalty points earned → in-app
+
+Store notifications:
+- New order → Socket.io + email (backup)
+- Payment confirmed for order → in-app
+- Refund approved by admin → email + in-app
+- Weekly earnings summary → email (cron)
+
+Email templates (beautiful HTML, brand colors #3FB196):
+Build Nodemailer templates for all above.
+Each template: logo header, content, CTA button,
+halal footer ("Serving the Muslim Community with ❤️"),
+unsubscribe link (legal requirement).
+
+SMS templates (Twilio):
+Bilingual: English default, Urdu if user preference = 'ur'
+Keep under 160 chars per segment.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. CRON JOBS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Use node-cron:
+
+recurringOrders.cron.js (every 15 min):
+- Find RecurringOrders where nextOrderDate <= now + 30min
+- Auto-create orders
+- Charge saved payment method
+- Update nextOrderDate
+- Send confirmation to customer + notification to store
+
+weeklyPayouts.cron.js (Monday 9 AM):
+- Find all stores on weekly payout
+- Calculate period gross revenue - commission
+- Create Stripe Transfers
+- Record in StorePayout
+- Send earnings summary email to each store
+
+loyaltyExpiry.cron.js (daily midnight):
+- Find loyalty points expiring in 7 days → notify
+- Expire points older than 12 months → mark expired
+
+pickupSlots.cron.js (daily 1 AM):
+- Generate pickup slots for next 7 days
+- For each store × each operating day
+- Create PickupSlot records based on store settings
+
+analyticsRollup.cron.js (daily 2 AM):
+- Aggregate yesterday's orders per store
+- Save to StoreAnalytic table
+- Update store rating averages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. SEO IMPLEMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Every public page via React Helmet Async:
+
+<title>Halal Grocery — Fresh Halal Meat [City] | Pickup in 60s</title>
+<meta name="description" content="...keyword rich..."/>
+<meta property="og:title" content="..."/>
+<meta property="og:description" content="..."/>
+<meta property="og:image" content="[store banner or product image]"/>
+<meta property="og:url" content="[canonical URL]"/>
+<link rel="canonical" href="[canonical URL]"/>
+
+JSON-LD Structured Data:
+- Homepage: WebSite + SearchAction
+- /stores: ItemList
+- /stores/[city]/[slug]: LocalBusiness + AggregateRating
+- /products/[slug]: Product + Offer + AggregateRating
+- /halal-meat: FAQPage
+
+/api/sitemap.xml route:
+- All public store pages
+- All active product pages
+- Category pages
+- Static pages
+Return proper XML sitemap.
+
+robots.txt:
+Allow: /stores, /products, /halal-meat, /eid-specials
+Disallow: /admin, /store-portal, /account, /checkout
+Sitemap: https://yourdomain.com/api/sitemap.xml
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. SECURITY HARDENING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- helmet.js: full security headers
+- CORS: whitelist frontend domain only
+- Rate limiting: 
+  Global: 200/min
+  Auth endpoints: 10/min  
+  Order creation: 5/min
+- Input sanitization: DOMPurify + Zod on all inputs
+- SQL injection: Prisma handles this (parameterized queries)
+- XSS: Content Security Policy headers
+- CSRF: double-submit cookie pattern for state-changing ops
+- File upload: validate MIME type + max 5MB + scan
+- Secrets: never in code, only env vars
+- PIPEDA compliance (Canada): 
+  Privacy policy page
+  Cookie consent banner
+  Data deletion endpoint: DELETE /api/profile (full account)
+  Data export endpoint: GET /api/profile/export
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. PERFORMANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Redis caching:
+- Store listings: 5min TTL (invalidate on store update)
+- Individual store + products: 2min TTL
+- Homepage featured data: 10min TTL
+- Pickup slots: 1min TTL
+
+Database:
+Add indexes on:
+- Orders: customerId, storeId, status, createdAt
+- Products: storeId, category, isActive
+- Stores: lat, lng, city, isActive, isApproved
+
+Image optimization:
+- All uploads → Cloudinary with auto WebP transform
+- Lazy loading on all images
+- Aspect ratio containers to prevent layout shift
+
+Code splitting:
+- Each portal lazy-loaded (React.lazy + Suspense)
+- Route-based code splitting
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. OFFLINE SUPPORT (Store App)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Service worker for /store-portal:
+- Cache app shell (HTML, CSS, JS)
+- Cache current pending orders list
+- Queue outgoing status updates when offline
+- Sync queue when back online
+- Show "Offline Mode" banner when disconnected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. MULTI-LANGUAGE (i18next)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Translation files: public/locales/en/ ur/ ar/
+All UI text externalized to translation keys.
+RTL support for Arabic (dir="rtl" on html tag).
+Language toggle in navbar saves to localStorage + user profile.
+All notification templates also bilingual.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. FINAL TESTING & SEED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Comprehensive seed demonstrating:
+- Full order lifecycle (each status)
+- Fresh meat order with weight adjustment
+- Curbside pickup order
+- Substitution approved + rejected scenarios
+- Recurring order
+- Group order
+- Eid special pre-order
+
+API tests (Jest + Supertest):
+- Auth flow (signup → verify → login → refresh)
+- Full order flow (create → confirm → prep → ready → pickup)
+- Meat weight flow (estimate → weigh → capture)
+- Curbside flow (place → ready → I'm here → delivered)
+- Substitution flow (request → approve/reject)
+- Refund flow (request → admin approve → Stripe refund)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11. README + DEPLOYMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Complete README:
+- All env variables explained
+- Local setup commands
+- Database setup + seed
+- All portal URLs + test credentials
+- Architecture overview
+- Deployment on Replit guide
+
+Test credentials:
+Admin:     admin@halalgrocery.com / Admin@123
+Store:     store@halalgrocery.com / Store@123
+Customer:  test@halalgrocery.com / Test@123

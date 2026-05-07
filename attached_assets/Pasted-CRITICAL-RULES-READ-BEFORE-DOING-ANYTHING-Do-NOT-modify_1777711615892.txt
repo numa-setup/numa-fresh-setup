@@ -1,0 +1,175 @@
+CRITICAL RULES — READ BEFORE DOING ANYTHING:
+- Do NOT modify anything currently working.
+- No data loss. No full rewrites. Surgical edits only.
+- Read existing code for each feature BEFORE touching it.
+- After each task, verify it works before moving to the next.
+- If unsure about any file, read it first — do not assume.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 1 — LOGOUT CONFIRMATION (ALL PORTALS)
+
+Current problem: Logout fires immediately with no confirmation on any portal.
+
+Fix required:
+1. On every portal — Admin (/admin), Seller (/seller), Customer (/) — intercept the logout action and show a confirmation dialog BEFORE logging out.
+   - Dialog text: "Are you sure you want to logout?"
+   - Two buttons: Confirm | Cancel
+   - Confirm → logout → redirect to that same portal's login page.
+   - Cancel → close dialog, user stays logged in, nothing changes.
+
+2. Route Guard between portals:
+   - If a logged-in user navigates to a different portal's URL (e.g. admin visits /seller), intercept and block.
+   - Show message: "You are currently logged in as [role]. Please logout first."
+   - Provide a Logout button that triggers the same confirmation flow above.
+   - This guard must work in all directions: Admin ↔ Seller ↔ Customer.
+
+Files to check first: auth context file, logout handler functions, router/navigation setup.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 2 — FIX FULL PAGE RELOAD ON NAVIGATION (CRITICAL)
+
+Current problem: Every tab switch and page navigation causes a full page reload across all portals. This must be fixed.
+
+Steps:
+1. Search entire codebase for: window.location.href, window.location.replace, window.location.assign — replace ALL with React Router's navigate() or  component.
+2. Check all useEffect hooks — fix missing or incorrect dependency arrays that cause unnecessary remounts.
+3. Check router setup — ensure BrowserRouter or equivalent is NOT nested or duplicated.
+4. Admin portal tab switching must be instant — no reload, no flash, no remount.
+5. Seller portal tab switching must be instant — same rule.
+6. Only actual API/data fetching should show loading states. Use lazy loading / Suspense where appropriate.
+7. A full page reload must NEVER happen during in-app navigation under any circumstance.
+
+Do not touch: any working API calls, database logic, or auth flow.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 3 — REFUND SYSTEM (ADMIN + SELLER PORTAL)
+
+Current problem: No proper refund flow exists.
+
+Fix required:
+
+Admin portal:
+- When admin processes a refund on any order, the refund amount must be deducted from the payout of the SPECIFIC store that fulfilled that order — not from a shared/global pool.
+- Refund must update that store's payout/balance record in the database.
+
+Seller portal:
+- Add a Refund button/option on eligible orders inside the Store Owner portal.
+- Store owner can initiate a refund request on an order.
+- Check existing order status flow and make refund consistent with it (e.g. request goes to admin for approval, or processes directly if that is the existing pattern).
+
+Files to check first: order model, payout/balance model, store financials logic, existing order status handlers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 4 — ADMIN PRODUCTS: BULK ACTIONS + PAGINATION + SEARCH
+
+Current problem: No bulk selection, no pagination, no cross-page search on products in admin.
+
+Fix required:
+
+All Products table (Admin):
+- Display in table format, 20 products per page with pagination (Prev / Next / page numbers).
+- Columns: Checkbox | Product Image | Name | Store | Category | Status | Price | Actions
+- Select All checkbox in header row + individual checkboxes per row.
+- Bulk action buttons: Approve Selected, Delete Selected.
+- Per-row actions: Approve, Reject, Edit, Delete.
+
+Pending Approvals page:
+- Add a search bar at the top that searches across ALL pending products (not just current page of 20).
+- Same table format as above.
+- Bulk actions: Approve Selected, Reject Selected.
+
+Approved Products page:
+- Same table format + pagination + search across all approved products.
+- Bulk actions appropriate for approved status: Unapprove Selected, Delete Selected.
+
+Files to check first: admin products component, products API/query endpoints.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 5 — ADMIN USERS TAB: ADD PAGINATION
+
+Current problem: All users load at once with no pagination.
+
+Fix required:
+- Show 10 users per page.
+- Add pagination controls: Previous, Next, page numbers.
+- Add a search bar above the table that searches across all users (not just current page).
+
+Files to check first: admin users component, users API/query endpoint.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 6 — REMOVE CHAT SYSTEM COMPLETELY
+
+Scope: Remove ALL chat-related code from frontend, backend, and database across every portal.
+
+What to remove:
+- Live Chat (Customer portal)
+- Direct Messages (Admin portal)
+- Order Chats (Customer portal)
+- Support Chat (Seller portal)
+- AI Chatbot (any portal)
+- All WebSocket/socket listeners related to chat
+- All chat API endpoints
+- All chat-related database collections or tables
+- All navigation links, tabs, buttons pointing to any chat feature
+- All chat-related notification triggers
+
+Search codebase for these keywords and remove all matches:
+chat, message, socket, chatbot, support, livechat, directmessage, orderchat
+
+IMPORTANT — preserve context for future rebuild:
+- Before deleting each file, add a comment at the top: /* CHAT_REMOVED — [brief description of what this did] */
+- Do NOT drop database collections — comment out the schema with: // CHAT_SCHEMA_PRESERVED_FOR_FUTURE
+- Keep commented schema in place so it can be restored later.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 7 — LOGIN & CREATE ACCOUNT PAGES: CLEANUP
+
+Applies to: All login and Create Account pages across Admin (/admin), Seller (/seller), Customer (/login, /create-account).
+
+Note: Our system uses "Create Account" — not "Sign Up". Use this label everywhere.
+
+Fix required:
+1. Remove the header and footer from ALL login and Create Account pages. These pages must be standalone with no navigation chrome.
+2. Remove the "Continue with Google" button from ALL login and Create Account pages — remove both the frontend button AND the backend OAuth handler.
+3. Do not touch existing email/password authentication logic.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TASK 8 — DATA EXPORT: CSV (ADMIN PORTAL)
+
+Add export functionality to the Admin portal for the following data sets. All exports must be in CSV format with complete data — no fields omitted.
+
+Products export:
+- Options: All Products / By Store / Approved Only / Pending Approval Only
+- CSV columns: Product ID, Name, Store, Category, Subcategory, Status, Price, Stock, Created Date
+
+Orders export:
+- Filters: Date range, Store, Order Status
+- CSV columns: Order ID, Customer Name, Store, Products, Total Amount, Status, Order Date
+
+Stores export:
+- Filters: Status (Approved / Pending)
+- CSV columns: Store ID, Store Name, Owner, Location, Status, Created Date
+
+Users export:
+- Filters: Role (Customer / Seller)
+- CSV columns: User ID, Name, Email, Role, Created Date, Status
+
+Export button placement: top-right corner of each respective table/page in the admin portal.
+File naming format: [type]_export_[YYYY-MM-DD].csv (e.g. products_export_2026-05-02.csv)
+Filters applied on screen must be reflected in the exported CSV data.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FINAL REMINDER:
+- Complete one task fully before starting the next.
+- Do not touch working functionality outside the scope above.
+- No data loss under any circumstance.
+- No full rewrites — patch only what is broken or missing.

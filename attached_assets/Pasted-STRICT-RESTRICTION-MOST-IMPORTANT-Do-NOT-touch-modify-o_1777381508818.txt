@@ -1,0 +1,61 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Do NOT cause any data loss — all existing stores, products, and data must remain intact. Only work on exactly what is listed below.
+
+1. Checkout — Remove Duplicate Steps & Replace Button
+The steps shown after clicking "Go to Checkout" (Order Type → Substitutions → Review & Pay) are duplicates of what already exists on the cart page. Remove these duplicate steps completely.
+Instead, where the "Go to Checkout" button currently appears, replace it with a "Place Order" button that directly places the order — skipping the duplicate steps. All existing functionality after order placement must remain exactly the same.
+
+2. Cart Page — Similar Products Fix
+Similar Products on the cart page must show for all products added to cart — not just one. Current behavior only shows similar products for one item.
+Fix the logic so that:
+
+For every product added to cart, its similar products are shown.
+Similarity is based on: closely matching name + exact same category and subcategory.
+Similar products must show on both the full cart page and the cart sidebar.
+
+
+3. Store Edit — Categories Fix
+When Admin or Store Owner edits a store, categories are not loading in the edit form. Fix this so existing categories pre-load correctly.
+Also fix these issues:
+
+Adding new categories must not remove previous ones.
+There must be no limit on the number of categories — remove the 6-category cap.
+Add a built-in dropdown of 30+ halal grocery related categories that can be selected.
+When a category is selected, its relevant subcategories must appear for selection automatically.
+The option to manually type a custom category must also remain available.
+
+
+4. Customer Profile — Remove Referral Code Section
+Remove the Referral Code section from the Customer Profile completely.
+
+5. Customer Profile — Fix Address Save & Schedule Orders
+
+New Address is not being saved in the customer profile. Fix this so addresses save correctly and persist.
+In Schedule Orders, the option to add a new schedule is not working. Fix and activate this functionality.
+
+
+6. Customer Profile — Chat Scroll Fix
+When a customer clicks on the Live Chat tab (Direct Messages or Order Chats), the page automatically scrolls down. Fix this:
+
+Opening the chat tab must show the chat from the top/beginning — no auto-scroll down.
+When opening a specific chat conversation, that chat must display from the latest message visible — but without the page itself scrolling unexpectedly.
+
+
+7. Store Detail Page — Chat & Review Buttons Spacing
+The "Chat with Store" and "Write a Review" buttons/tabs are currently stuck to the card below them with no spacing. Fix the spacing so they are properly separated and visually prominent.
+
+8. Store Detail Page — Browse by Category: Single Scrollable Row
+The "Browse by Category" section must display all categories in one single horizontal row. If there are more categories than fit on screen, the row must be horizontally scrollable — no wrapping to a second row.
+
+9. Store Detail Page — Product Cards Per Category: Single Scrollable Row
+For each category's product listing, show products in one single horizontal row only. If there are more products than fit, make them horizontally scrollable — no multiple rows per category.
+
+10. Live Preview vs Published URL Sync Fix
+There is a sync issue between the Replit internal preview and the published URL (https://numa-project.replit.app/):
+
+Stores and products added via the published URL are not reflecting in the Replit internal preview, and vice versa.
+Fix this so both the internal preview and the published URL are always in sync — using the same database and same data source.
+Any store or product added from either environment must reflect everywhere immediately.
+
+
+Again — do not touch anything already working. Do not cause any data loss. Only implement the ten points listed above.

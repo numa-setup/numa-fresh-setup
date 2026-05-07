@@ -1,0 +1,481 @@
+Halal Grocery — Phase 1 (backend) is complete.
+Now build Phase 2: COMPLETE CUSTOMER WEB APP
+
+Apply the full design system everywhere (colors, fonts, 
+shadows, animations) defined in Phase 1. Every page must be
+elite quality — like a premium food delivery app.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GLOBAL SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- React Query for all API calls (with loading/error states)
+- Framer Motion for page transitions and micro-animations
+- i18next for EN/UR/AR switching (language toggle in navbar)
+- React Helmet Async for SEO meta on every page
+- Axios instance with JWT interceptor + auto-refresh
+- React Hook Form + Zod for all forms
+- Tailwind CSS with custom theme extending design system
+- React Hot Toast for notifications
+
+State management:
+- AuthContext: user, tokens, login/logout, language
+- CartContext: items, totals, coupon, loyalty, meat specs
+- UIContext: modals, drawers, loading states
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 1: HOMEPAGE (/) — Elite Landing Page
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEO: title="Halal Grocery — Fresh Halal Meat & Groceries Near You"
+     description="Order fresh halal meat, ethnic groceries, and more..."
+     Structured data: WebSite + LocalBusiness JSON-LD
+
+Sections:
+
+A. HERO SECTION
+   - Full-width gradient background (hero gradient)
+   - Animated headline: "Fresh Halal Groceries, Ready in Minutes"
+   - Subheadline in EN + small Urdu text below
+   - Address search bar (Google Places autocomplete)
+     with location pin icon, placeholder "Enter your address..."
+   - CTA buttons: "Find Stores Near Me" + "How It Works"
+   - Hero image: beautiful flat-lay of fresh halal meat + spices
+     (use high-quality placeholder from Unsplash)
+   - Floating badge: "✓ Halal Certified Stores Only"
+   - Animated stats: "50+ Stores" "10,000+ Products" "60s Pickup"
+     (count-up animation on scroll into view)
+
+B. CATEGORY QUICK-LINKS (horizontal scroll on mobile)
+   Beautiful icon cards with gradient backgrounds:
+   🥩 Fresh Halal Meat → /halal-meat
+   🌶️ Ethnic Spices → /stores?cat=spices
+   🛒 Packaged Groceries
+   🥛 Dairy & Eggs
+   🧊 Frozen Foods
+   🥖 Bakery & Bread
+   🥬 Fresh Produce
+   🫙 Desi Pantry
+   Each card: gradient background, icon, name in EN + UR
+
+C. NEARBY STORES GRID
+   Heading: "Halal Stores Near You"
+   - Fetch /api/stores?lat=X&lng=Y&limit=6
+   - StoreCard component (see below)
+   - "View All Stores →" button
+   - If location not granted: show popular stores in default city
+
+D. FRESH MEAT SPOTLIGHT
+   Full-width section with dark background (#1E5C4D)
+   - Left: content — "Cut Fresh, Just For You"
+     "Our stores cut halal meat to your exact specifications.
+      Boneless, bone-in, ground, cubed — your way."
+   - Right: animated meat selection cards
+   - CTA: "Order Fresh Meat →" → /halal-meat
+   - Halal certification badge (gold color)
+
+E. HOW IT WORKS (3 steps)
+   Beautiful numbered cards with icons:
+   1. Choose Your Store → Browse nearby halal stores
+   2. Add to Cart → Fresh meat with cut specifications
+   3. Pickup in 60 Seconds → Express or curbside
+
+F. TESTIMONIALS / TRUST SECTION
+   Star ratings, customer quotes
+   "As-salamu alaykum! Best halal store app I've used."
+
+G. EID SPECIALS BANNER (seasonal, show 30 days before Eid)
+   Gold gradient banner with Arabic calligraphy
+   "عيد مبارك — Eid Mubarak Specials"
+   CTA: "Pre-Order Now" → /eid-specials
+
+H. APP DOWNLOAD BANNER (future)
+   "Coming Soon to iOS & Android"
+
+I. FOOTER
+   Logo, links, social media
+   EN/UR/AR language switcher
+   "Serving the Muslim Community" tagline
+   Halal certification logos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 2: STORE LISTING (/stores)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEO: "Halal Grocery Stores Near [City]"
+     Structured data: ItemList of stores
+
+Layout: Sidebar filters + store grid
+
+Filters (sticky sidebar on desktop, drawer on mobile):
+- Open Now toggle
+- Pickup Available toggle  
+- Curbside Available toggle
+- Delivery Available toggle
+- Halal Certified Only (default ON)
+- Min Rating: star selector
+- Max Convenience Fee: slider
+- Categories: checkboxes
+
+Sort: Nearest / Top Rated / Fastest Pickup / Lowest Fee
+
+StoreCard Component:
+- Banner image (gradient fallback)
+- Logo overlaid bottom-left
+- "HALAL CERTIFIED" gold badge (top-right) if certified
+- "MASJID AFFILIATED" green badge if applicable
+- Store name (bold, Playfair font)
+- Rating: ★★★★☆ (4.2) · 128 reviews
+- Tags: pickup icons, delivery icons
+- Pickup time: "Ready in ~25 min"
+- Convenience fee + min order
+- Hover: lift shadow, "Shop Now" button appears
+- Click: navigate to /stores/[city]/[store-slug]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 3: STORE DETAIL (/stores/[city]/[store-slug])
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEO: "[Store Name] — Halal Grocery [City]"
+     Structured data: LocalBusiness + Product listings
+
+Layout:
+A. STORE HEADER
+   - Full-width banner (gradient if no image)
+   - Logo + name + rating
+   - Info pills: "Open until 9 PM" "Pickup ~25 min" "Curbside ✓"
+   - Halal cert badge with cert number
+   - Tabs: Products | Reviews | Info | Hours
+
+B. STICKY CATEGORY NAVIGATION
+   Horizontal scroll category pills
+   Click → smooth scroll to that section
+   Active category highlighted
+
+C. PRODUCT GRID
+   Each category section with heading
+   Products in responsive grid (2 mobile, 3 tablet, 4 desktop)
+   
+   ProductCard Component:
+   - Image (aspect ratio 1:1, lazy loaded)
+   - "SPONSORED" subtle badge if sponsored
+   - "FRESH TODAY" green badge if freshness label set
+   - "LOW STOCK" amber badge if near threshold
+   - Name (EN + UR below in smaller text)
+   - Price (bold) + compare price (strikethrough)
+   - Price per kg if fresh meat
+   - Add to cart button (animates to cart)
+   - If fresh meat: "Customize Cut" instead of direct add
+
+D. FRESH MEAT PRODUCT MODAL (special):
+   When customer clicks fresh meat product:
+   
+   Step 1: Select Cut Type
+   Beautiful visual cards for each cut:
+   🥩 Whole | Half | Quarter
+   🔪 Boneless | Bone-In | Cubed | Ground | Custom
+   
+   Step 2: Enter Quantity
+   - Weight selector: 0.5kg, 1kg, 1.5kg, 2kg, custom
+   - Price estimate auto-calculates
+   - Note: "Final price based on actual weight"
+   
+   Step 3: Special Instructions
+   - Marination preference (none/lemon/tandoori/etc.)
+   - Packaging (single/multiple packs)
+   - Custom instructions textarea
+   
+   Step 4: Add to Cart
+   - Shows estimated price range
+   - Clear disclaimer: "Pre-auth estimate. Final charged at actual weight."
+
+E. SEARCH BAR (within this store)
+   Debounced search, results highlighted
+
+F. CART DRAWER (slides from right)
+   Shows all items with:
+   - Qty controls
+   - Meat items show cut type + instructions
+   - Estimated total
+   - "Checkout" CTA button
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 4: CHECKOUT (/checkout)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Multi-step checkout (progress indicator at top):
+Step 1 → Step 2 → Step 3 → Step 4
+
+STEP 1: ORDER TYPE
+   3 option cards (full width, beautiful):
+   
+   🏃 Express Pickup (Recommended)
+   "Walk in, pick up in under 60 seconds"
+   → Select pickup time slot (calendar + time grid)
+   → Available slots show remaining capacity
+   
+   🚗 Curbside Pickup
+   "We bring it to your vehicle"
+   → Vehicle info: Make, Model, Color, Plate
+   → Previous vehicles shown for quick select
+   → Pickup time slot selection
+   → Note: "Tap 'I'm Here' when you arrive"
+   → Curbside fee shown if applicable
+   
+   🚚 Store Delivery (if store offers)
+   "Delivered by store's driver"
+   → Address selector
+   → Delivery fee shown
+   → Estimated delivery time
+
+STEP 2: SUBSTITUTION PREFERENCES
+   For each PACKAGED item in cart:
+   Clear UI — item name + image on left, 4 options on right:
+   ○ No Replacement — "Remove from order if unavailable"
+   ○ Replace with Similar — "Staff picks best match"
+   ○ Choose Specific Replacement — [dropdown of alternatives]
+   ○ Contact Me First — "I'll approve before finalizing"
+   
+   Note: Fresh meat items skip this step (cut to order)
+   "These preferences help us handle unavailable items"
+
+STEP 3: REVIEW & PAYMENT
+   Order summary:
+   - All items with specifications
+   - Meat items: show cut type, estimated weight, estimated price
+   - Clear fee breakdown (NO hidden fees):
+     Subtotal:           $XX.XX
+     Convenience fee:    $X.XX
+     Curbside fee:       $X.XX  (if applicable)
+     Delivery fee:       $X.XX  (if applicable)
+     Promo discount:     -$X.XX
+     Loyalty discount:   -$X.XX
+     Tip (optional):     $X.XX
+     ─────────────────────────
+     Estimated Total:    $XX.XX
+   
+   - For orders with fresh meat:
+     ⚠️ Info box: "Fresh meat items are priced by final weight.
+     We'll pre-authorize $XX.XX. Your card will only be charged 
+     the final amount after weighing."
+   
+   Promo code input
+   Loyalty points toggle (show balance)
+   Tip selector (for store staff): None / $1 / $2 / $3 / Custom
+   
+   Payment: Stripe Card Element (beautiful styled)
+   
+   "Place Order" button (disabled until all valid)
+
+STEP 4: CONFIRMATION
+   Animated success screen:
+   - ✓ Checkmark animation (Lottie or CSS)
+   - Order number (large, bold)
+   - QR Code (large, scan at pickup)
+   - Pickup slot time
+   - Store address with "Open in Maps" button
+   - "We'll notify you when ready" message
+   - ETA shown
+   - "Track Order" button
+   - "Return to Home" button
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 5: ORDER TRACKING (/account/orders/[id]/track)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Real-time via Socket.io
+
+A. STATUS TIMELINE (left side / top on mobile)
+   Beautiful vertical stepper:
+   ✅ Order Placed
+   ✅ Store Confirmed  
+   🔄 In Preparation (current — pulsing animation)
+   ○  Ready for Pickup
+   ○  Completed
+
+B. ORDER INFO (right side / below on mobile)
+   - QR Code (big, ready to scan)
+   - Store name + address + phone
+   - "Open in Maps" button
+   - Estimated ready time countdown
+   - Order type badge
+
+C. LIVE CHAT WITH STORE
+   Chat panel (Socket.io):
+   - Customer can message store
+   - Store can message customer
+   - Quick replies: "How long?" "I'm on my way" "I've arrived"
+   - Notification badge if unread
+
+D. CURBSIDE: "I'M HERE" BUTTON
+   Only shows if order type = curbside + status = ready
+   Big green button → sends notification to store
+   → Show vehicle info to store
+   → Status updates to "Coming to your vehicle"
+
+E. SUBSTITUTION APPROVAL (if needed)
+   If store found substitution → popup:
+   "Store suggests replacing [item] with [substitute]"
+   Accept / Reject buttons
+   Auto-accepts in 5 min if no response
+
+F. ITEMS SUMMARY ACCORDION
+   All ordered items, statuses (found/not found/substituted)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 6: ORDER HISTORY (/account/orders)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Paginated order list
+- Each row: store logo, date, items count, total, status badge
+- Expand: item list, final weight (meat), fee breakdown
+- "Reorder" button (one-click reorder all items)
+- "Rate this order" if unrated (within 7 days)
+- "Request Refund" (within 48 hours, if eligible)
+- Filter by: All / Pickup / Delivery / Active / Past
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE 7: PROFILE SECTION (/account/*)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sidebar navigation + content area
+
+/account — Dashboard
+  Quick stats: orders this month, loyalty points, active orders
+
+/account/addresses — Saved Addresses
+  List + add new (Google Maps autocomplete)
+  Set default, delete, edit
+
+/account/payment-methods — Payment Methods
+  Stripe saved cards
+  Add new card (Stripe Element)
+  Set default, remove
+
+/account/membership — Subscription Plans
+  FREE / BASIC ($4.99) / PREMIUM ($9.99) / FAMILY ($14.99)
+  Beautiful plan comparison cards
+  Current plan highlighted
+  Stripe subscription checkout
+
+/account/loyalty — Loyalty Points
+  Points balance (big, animated number)
+  Tier progress bar (Bronze/Silver/Gold/Platinum)
+  Transaction history
+  "How to earn" guide
+
+/account/meal-planner — AI Halal Meal Planner
+  Step 1: Preferences
+  - Cuisine: Pakistani / Middle Eastern / African / Mixed Halal
+  - Diet: Standard / Low-carb / High-protein / No pork/alcohol
+  - Family size: 1-10
+  - Weekly budget
+  
+  Step 2: Generated 7-day plan
+  Beautiful card layout — breakfast/lunch/dinner per day
+  Halal recipe names with brief description
+  
+  Step 3: Auto grocery list
+  All ingredients combined
+  Estimated cost
+  Store selector
+  
+  Step 4: Add all to cart
+
+/account/scheduled-orders — Recurring Orders
+  List of saved recurring orders
+  Create: name, store, items, frequency, day+time
+  Edit, Pause, Skip next, Delete
+
+/account/notifications — Notification Preferences
+  Toggle per event type
+  Language preference for notifications (EN/UR)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SPECIAL PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+/halal-meat — Fresh Halal Meat Landing
+SEO: "Fresh Halal Meat Delivery & Pickup Near You"
+- Hero: beautiful meat imagery, "Cut to Your Specifications"
+- How meat ordering works (visual steps)
+- Featured meat stores nearby
+- All meat categories: Beef / Lamb / Goat / Chicken / Veal
+- Trust section: halal cert, freshness guarantee
+
+/eid-specials — Eid & Qurbani Page
+SEO: "Eid Specials — Halal Meat & Qurbani Near You"
+- Arabic calligraphy header
+- Eid greeting in EN + UR + AR
+- Pre-order Qurbani section:
+  * Whole sheep/goat, Half/Quarter cow
+  * Pick up date (Eid day)
+  * Custom cut instructions
+  * Family name for dedication
+- Eid grocery bundles from stores
+- Countdown timer to Eid
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SHARED COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Build all these as reusable components:
+
+- Navbar: logo, address, search, cart icon, language switcher,
+  login/profile menu. Transparent on homepage, solid on scroll.
+- BottomNav: mobile only — Home, Search, Orders, Account
+- StoreCard, ProductCard (see above)
+- MeatCustomizerModal (step-by-step, see above)
+- CartDrawer (right side drawer)
+- FeeBreakdown (reusable checkout component)
+- OrderStatusBadge (color-coded)
+- StarRating (interactive + display)
+- HalalBadge (gold, with checkmark)
+- PickupSlotSelector (calendar grid)
+- QRCodeDisplay (with download button)
+- LoadingSkeleton (match each page's layout)
+- EmptyState (with illustrated SVG)
+- LanguageSwitcher (EN / عر / اردو)
+- PriceDisplay (handle PKR/CAD/USD formatting)
+- AddressInput (Google Places)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CUSTOMER-FACING API ROUTES (build all)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET    /api/stores?lat&lng&filters     → nearby stores
+GET    /api/stores/[slug]              → store detail
+GET    /api/stores/[slug]/products     → all products
+GET    /api/stores/[slug]/slots        → pickup time slots
+GET    /api/products/[slug]            → product detail (SEO)
+GET    /api/products/search?q=         → search products
+
+POST   /api/orders                     → place order
+GET    /api/orders                     → my order history
+GET    /api/orders/[id]                → order detail
+GET    /api/orders/[id]/track          → real-time tracking
+POST   /api/orders/[id]/verify-qr     → verify pickup QR
+POST   /api/orders/[id]/im-here       → curbside arrived
+POST   /api/orders/[id]/rate           → submit rating
+POST   /api/orders/[id]/refund-request → request refund
+PATCH  /api/orders/[id]/substitution   → approve/reject sub
+
+POST   /api/payments/create-intent     → Stripe PaymentIntent
+POST   /api/payments/capture           → capture after weighing
+POST   /api/payments/webhook           → Stripe webhook handler
+
+GET    /api/profile                    → get profile
+PATCH  /api/profile                    → update profile
+GET    /api/profile/addresses
+POST   /api/profile/addresses
+PUT    /api/profile/addresses/[id]
+DELETE /api/profile/addresses/[id]
+
+GET    /api/loyalty/balance
+GET    /api/loyalty/transactions
+
+GET    /api/subscriptions/plans
+POST   /api/subscriptions/subscribe
+DELETE /api/subscriptions/cancel
+
+GET    /api/recurring-orders
+POST   /api/recurring-orders
+DELETE /api/recurring-orders/[id]
+
+POST   /api/promos/validate            → validate promo code
+
+GET    /api/notifications
+PATCH  /api/notifications/[id]/read
+PATCH  /api/notifications/read-all
+
+GET    /api/sitemap.xml                → auto-generated sitemap

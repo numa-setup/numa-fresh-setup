@@ -1,0 +1,44 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only remove exactly what is listed below — nothing more, nothing less. Be very careful and surgical with removals.
+
+Removals Required — Customer Website
+1. Browse Tab & All-Stores Page
+Remove the "Browse" tab from the header completely. The page that opens when clicking Browse (which displays all stores in the system) must also be removed. Any buttons, links, or references related to this tab and page must also be removed throughout the system.
+2. Halal Meal Planner — Complete Removal
+Remove the "Halal Meal Planner" tab from the header. Also remove every related section, page, button, link, or any option anywhere in the system that references Halal Meal Planner. Nothing related to it should remain anywhere.
+3. Eid Specials — Complete Removal
+Remove the "Eid Specials" tab from the header. Remove the page that opens when clicking it. Remove all related sections, buttons, and links anywhere in the system. Nothing related to Eid Specials should remain.
+4. Hero Section Buttons & Their Pages
+Remove these two buttons from the Hero section:
+
+"Find Stores"
+"Order Fresh Meat"
+
+Also remove the pages that these buttons link to. Nothing related to these buttons or their destination pages should remain.
+5. Popular Products Section
+Remove the Popular Products section from the customer website completely.
+6. Flexible Options / Shop Your Way Section
+Remove the "Flexible Options" or "Shop Your Way" section completely from the customer website.
+7. Halal Meal Planner Section
+Remove the Halal Meal Planner section from the customer website (separate from the tab — this is the standalone section on the page).
+
+Removals Required — Admin Panel
+8. Eid Specials — Admin Panel
+Remove everything related to Eid Specials from the Admin Panel as well.
+9. Halal Meal Planner Toggle — Admin Panel
+Remove the Halal Meal Planner toggle button from the Admin Panel.
+10. Web CMS — Top Pick Products Section
+In the Web CMS, remove the Top Pick Products section where that content was managed.
+11. Web CMS — Eid Specials Page
+In the Web CMS, remove the Eid Specials page management section.
+
+Modification Required — Admin Panel
+12. Announcements — Convert to Toggle
+In the Admin Panel, convert Announcements into a toggle button so the admin can control whether announcements are shown or hidden on the customer website.
+
+If toggle is ON → announcements show on the customer website.
+If toggle is OFF → announcements are hidden from the customer website.
+The way announcements are currently managed (content, editing, etc.) should remain exactly the same — only add the show/hide toggle on top of the existing functionality.
+
+
+Again — only perform the removals and changes listed above. Do not touch anything else that is already working.

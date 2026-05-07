@@ -1,0 +1,29 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+"Browse by Category" Section — Make Fully Dynamic
+On the Store Detail Page, there is a section called "Browse by Category". Currently the categories in this section are hardcoded. This entire section must be made fully dynamic.
+
+Required Implementation:
+1. Category Input During Store Setup
+When a Store Owner or Admin is creating or editing a store, there must be an option to add custom categories for that store. These categories will populate the "Browse by Category" section on that store's detail page.
+
+They should be able to add multiple categories.
+They should be able to remove or edit existing categories.
+Each category should have at minimum a name and optionally an icon or image.
+
+2. Dynamic Display on Store Detail Page
+Whatever categories the Store Owner or Admin adds during store setup must appear dynamically in the "Browse by Category" section on that store's public detail page on the client website.
+
+Each store shows only its own categories — not a shared global list.
+If a store has no categories added, the section should either be hidden or show a clean empty state.
+
+3. Category Filter Buttons — Link to Categories
+The category filter buttons on the store detail page must work based on these same dynamic categories. When a customer clicks a category filter button, it should filter and show only the products belonging to that category — based on whatever categories that store has defined.
+
+Filter buttons must be generated dynamically from the store's own category list.
+Selecting a category filter must show only relevant products in real time.
+This must be consistent — the "Browse by Category" section and the category filter buttons must both use the same data source.
+
+
+Again — do not touch anything that is already working. Only implement the dynamic category system as described above.

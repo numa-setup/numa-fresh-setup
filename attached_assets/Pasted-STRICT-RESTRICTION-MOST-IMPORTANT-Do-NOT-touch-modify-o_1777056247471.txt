@@ -1,0 +1,82 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. "Similar Products" Logic — Rename & Redefine
+Wherever "Related Products" appears (Product Detail Page, Cart Page, or anywhere else in the system), rename it to "Similar Products".
+The logic for Similar Products must be: only show products with the same or very close name — meaning the same product but from a different brand or store. Do not show random related category products.
+
+2. Cart — Save Order & Enable Reorder
+Once the cart checkout flow is complete and an order is placed, that order must be saved for that customer. A "Reorder" button must be enabled on that saved order so the customer can click it once and all products from that order are added back to cart instantly.
+
+3. Store Tags — Remove & Add
+
+Remove the "Masjid Affiliated" tag from store tags.
+Add new tags such as city-wise tags and any other relevant category tags that make sense for filtering stores.
+
+
+4. Reviews Section — Correct the Dynamic Logic
+To clarify what was requested earlier: the Admin does not write reviews himself. The correct behavior is:
+
+Real reviews submitted by customers come into the system in real time.
+The Admin can select, feature, delete, or manage which reviews appear in the "Loved by the Community" section on the client website.
+Admin has full control over which reviews are visible — but all reviews are written by real customers, not the admin.
+
+
+5. Admin Panel — Announcements Toggle Fix
+The Announcements toggle in Website CMS is currently not working. Please rebuild and fix it properly so that:
+
+Toggle ON → Announcements show on the client website.
+Toggle OFF → Announcements are hidden from the client website.
+The rest of the announcements management (content, editing) should remain as is.
+
+
+6. Admin Panel — Remove "Site Settings" Option
+Remove the Site Settings option from the Admin Panel completely.
+
+7. Admin Panel — Remove "Support Tickets" Option
+Remove the Support Tickets option from the Admin Panel completely.
+
+8. Admin Panel — Audit Log: Show Person's Name in Actor Field
+In the Admin Panel Audit Log, the Actor field should display the actual name of the person who performed the action — not an ID or blank value.
+
+9. Remove "All Products" Page — Completely
+Remove the All Products page from the entire system. There should be no option, link, button, or route anywhere that shows all products from all stores on a single page.
+Products should only be visible on their respective store's detail page, showing only that store's own products.
+
+10. Similar Products Cards — Fix Layout & Width
+On the Product Detail Page, the Similar Products section currently shows only 4 cards in one row with a lot of empty space remaining. Fix this so:
+
+The full width is used.
+Cards are properly distributed across the available space.
+No empty space is wasted.
+
+
+11. Product Detail, Ingredients & Full Info — Fix Display
+Product details and ingredients are still not showing on the Product Detail Page. Fix this immediately.
+Also, when Admin or Store Owner adds a new product, the product creation form must include all of the following fields:
+
+Images (3–4, minimum 1 required)
+Product Name
+Price
+Unit
+Type
+Tags
+Category
+Subcategory
+Full Description / Detail
+Ingredients
+Certified From (Halal certification etc.)
+Expiry Date
+Inventory / Stock quantity
+Any other relevant fields
+
+Both Admin and Store Owner must have access to all these fields when adding or editing products.
+
+12. Existing Products — Backfill Data
+For all products currently in the system, fill in their data based on the new fields structure above — so the product detail pages look complete and the similar products concept is demonstrated clearly.
+Also add a few new sample products so that the Similar Products feature is clearly demonstrated (same product name, different brand/store).
+
+13. Cart Detail Page — "You Might Also Like" Last Card Cut Off
+On the Cart detail page, the last card in the "You Might Also Like" section is being cut off — likely a scroll behavior issue. Please check and fix this so all cards are fully visible and the horizontal scroll works correctly.
+
+Again — do not touch anything that is already working. Only implement the points listed above.

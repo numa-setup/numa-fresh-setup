@@ -1,0 +1,1378 @@
+# NUMA FRESH MARKETPLACE — COMPLETE IMPLEMENTATION PROMPT
+# Copy-paste this entire file into your AI coding assistant (Replit, Cursor, etc.)
+# ============================================================
+
+You are working on an EXISTING project called "Numa Fresh Marketplace".
+Do NOT rebuild from scratch. Enhance and extend the existing codebase.
+
+The project is a halal grocery marketplace with:
+- Customer Website (main frontend)
+- Store Owner Portal (/store-portal)
+- Admin Panel (/admin)
+- Backend: Node.js + Express + TypeScript + Drizzle ORM + PostgreSQL
+- Real-time: Socket.IO with /customer, /store, /admin namespaces
+- Frontend: React 18 + TypeScript + Vite + TailwindCSS + shadcn/ui
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SHARED COMPONENTS — READ THIS BEFORE EVERYTHING ELSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Two components are shared across portals. Build them ONCE. Use them everywhere.
+
+<StoreSetupWizard mode="admin|store-owner" initialData={} onSubmit={} />
+  - Built ONCE as a shared component
+  - Used in /store-portal/onboarding AND /admin/stores/new
+  - Renders identically in both portals
+  - Only submit behavior differs (admin = auto-approve, store-owner = pending review)
+  - This is how "exactly same design" requirement is achieved
+  - Do NOT build two separate onboarding flows
+
+<ProductForm mode="add|edit" storeId={} adminMode={bool} onSubmit={} />
+  - Built ONCE as a shared component
+  - Used in /store-portal/products AND /admin/stores/:id/products
+  - Renders identically in both portals
+  - adminMode={true} = auto-approved on save
+  - adminMode={false} = submitted for review on save
+  - Do NOT build two separate product forms
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CORE REQUIREMENT — REAL-TIME SYNC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ALL THREE PORTALS MUST BE FULLY SYNCED IN REAL TIME.
+
+When ANYTHING changes anywhere:
+- Admin approves a store → Store owner sees "Approved" status instantly
+- Store owner updates store hours → Customer website reflects it immediately
+- Store owner adds a product → Admin sees it in pending queue instantly
+- Admin toggles store active/inactive → Customer website shows/hides store instantly
+- Store owner changes product price → Customer website updates price in real time
+- Admin suspends a store → Store portal shows suspended status + customer website hides store
+- Store owner changes opening hours → Store active/closed status auto-updates on customer website
+- New order placed → Store portal shows notification + sound instantly
+- Admin bans a user → User is kicked from all sessions instantly
+- New chat message sent → Recipient sees it instantly across any portal
+
+Use Socket.IO to broadcast ALL these events across /customer, /store, /admin namespaces.
+Every database mutation must emit a socket event.
+Every frontend must listen and update UI without page refresh.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPLEMENTATION ORDER — FOLLOW THIS EXACTLY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build step by step. After each step, save a Replit checkpoint before proceeding.
+This way if something breaks, you can roll back to the last working state.
+
+STEP 1  → Database migrations (Parts 1 + 11A schema)
+          CHECKPOINT: "checkpoint-01-database-migrations"
+
+STEP 2  → Socket.IO events setup (Part 6)
+          CHECKPOINT: "checkpoint-02-socket-events"
+
+STEP 3  → All API routes (Part 8) including chat, orders, users, analytics
+          CHECKPOINT: "checkpoint-03-api-routes"
+
+STEP 4  → Cron job for opening hours auto-status (Part 7)
+          CHECKPOINT: "checkpoint-04-cron-job"
+
+STEP 5  → Shared components: StoreSetupWizard + ProductForm + ChatWindow +
+          ConversationList + StoreCard + ProductDetailModal +
+          StoreStatusToggles + CategoryTabNav (Parts 9 + 13G)
+          CHECKPOINT: "checkpoint-05-shared-components"
+
+STEP 6  → Store owner onboarding wizard using StoreSetupWizard (Part 2)
+          CHECKPOINT: "checkpoint-06-store-onboarding"
+
+STEP 7  → Store portal: dashboard, settings, products (Part 3)
+          CHECKPOINT: "checkpoint-07-store-portal-core"
+
+STEP 8  → Store portal: orders + analytics + account settings (Parts 12A, 12B, 12C)
+          CHECKPOINT: "checkpoint-08-store-portal-orders"
+
+STEP 9  → Admin portal: stores, products (Part 4)
+          CHECKPOINT: "checkpoint-09-admin-stores-products"
+
+STEP 10 → Admin portal: users, orders, analytics, settings (Parts 11B–11G)
+          CHECKPOINT: "checkpoint-10-admin-full"
+
+STEP 11 → Customer website: responsive grid, product modal, real-time sync (Part 5)
+          CHECKPOINT: "checkpoint-11-customer-website"
+
+STEP 12 → Chat system across all three portals (Part 13)
+          CHECKPOINT: "checkpoint-12-chat-system"
+
+STEP 13 → Seed / test data updates
+          CHECKPOINT: "checkpoint-13-seed-data"
+
+STEP 14 → End-to-end testing of all Socket.IO events across all 3 portals
+          CHECKPOINT: "checkpoint-14-final-tested"
+
+IMPORTANT RULES:
+- Do NOT change existing working functionality unless explicitly stated
+- Do NOT change existing design/colors/typography unless explicitly stated
+- Keep existing component structure — add to it, do not replace it
+- Every new route must be authenticated and role-checked
+- Every DB mutation must emit relevant Socket.IO event
+- Test each step before saving checkpoint and moving to next
+- Existing store data must be migrated — run UPDATE statements to set
+  default values for all new nullable columns
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 1 — DATABASE SCHEMA UPDATES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add or update these fields in the Stores table:
+
+stores table — add these columns if not already present:
+  branchName              TEXT (nullable)
+  cardImage               TEXT (nullable — separate card display image)
+  amenityTags             TEXT[] (max 5 tags — e.g. "Halal Certified", "Free Parking")
+
+  -- Premium Fresh Section
+  premiumFreshHeading     TEXT
+  premiumFreshDesc        TEXT
+  premiumFreshCutTags     TEXT[] (max 5 — e.g. "Boneless", "Bone-In", "Cubed")
+  premiumFreshBullet1     TEXT
+  premiumFreshBullet2     TEXT
+  premiumFreshBullet3     TEXT
+  premiumFreshButtonText  TEXT
+  premiumFreshButtonLink  TEXT
+
+  -- Visibility & Status Controls
+  isActiveManual          BOOLEAN DEFAULT true
+  showOnWebsite           BOOLEAN DEFAULT true
+  isCurrentlyOpen         BOOLEAN DEFAULT false
+  storeStatus             TEXT DEFAULT 'pending'
+    -- values: 'pending' | 'approved' | 'active' | 'suspended' | 'declined' | 'deleted'
+
+  -- Onboarding
+  onboardingCompleted     BOOLEAN DEFAULT false
+
+categories table (new table):
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  storeId     UUID REFERENCES stores(id) ON DELETE CASCADE
+  name        TEXT NOT NULL
+  slug        TEXT NOT NULL
+  sortOrder   INT DEFAULT 0
+  isActive    BOOLEAN DEFAULT true
+  createdAt   TIMESTAMPTZ DEFAULT now()
+
+  UNIQUE(storeId, slug)
+
+products table — add these columns if not already present:
+  images          TEXT[] (up to 4 image URLs)
+  shortDesc       TEXT
+  discount        NUMERIC(5,2) DEFAULT 0
+  certBadges      TEXT[] (e.g. ["Halal Certified", "Organic", "Non-GMO"])
+  productDetails  TEXT (long description / HTML)
+  ingredients     TEXT
+  directions      TEXT (usage/cooking directions)
+  stockQty        INTEGER DEFAULT 0
+  lowStockAlert   INTEGER DEFAULT 5
+  sizes           JSONB (nullable — [{label: "500g", price: 5.99}, ...])
+  categoryId      UUID REFERENCES categories(id) ON DELETE SET NULL
+  isApproved      BOOLEAN DEFAULT false
+  approvalStatus  TEXT DEFAULT 'pending'
+    -- values: 'pending' | 'approved' | 'rejected'
+  rejectionReason TEXT (nullable)
+  sortOrder       INT DEFAULT 0
+  isFeatured      BOOLEAN DEFAULT false
+
+Create these indexes:
+  CREATE INDEX ON products(storeId, categoryId, isApproved);
+  CREATE INDEX ON stores(storeStatus, showOnWebsite);
+  CREATE INDEX ON categories(storeId, sortOrder);
+
+Run migrations after schema changes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 2 — STORE OWNER ONBOARDING WALKTHROUGH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After Store Owner logs in for the FIRST TIME (onboardingCompleted = false),
+redirect them to /store-portal/onboarding instead of dashboard.
+
+This page uses the shared <StoreSetupWizard mode="store-owner" /> component.
+
+The onboarding is a multi-step wizard with a progress bar at the top.
+Show step number, step name, and completion percentage.
+Each step auto-saves as draft on "Next" — user can come back and resume.
+Show a sidebar preview of the store card updating live as they fill in details.
+
+STEP 1 — Basic Store Info
+  Fields (all required unless marked optional):
+  - Store Name (text input)
+  - Store Owner Name (text input)
+  - Branch Name (text input, optional — placeholder: "Main Branch / Gulberg Branch")
+  - Store Tagline (text input, optional — short catchy line shown on card)
+  - About Store (textarea — min 50 chars, shown on store detail page)
+  - Phone Number (with country code selector)
+  - WhatsApp Number (optional, with country code selector)
+  - Email Address
+
+STEP 2 — Visuals
+  Fields:
+  - Store Logo (image upload — crop to 1:1 ratio, min 200x200px)
+  - Cover/Banner Image (image upload — crop to 16:5 ratio, recommended 1600x500px)
+  - Card Image (image upload — optional, crop to 4:3 ratio — shown on listing card)
+    If not uploaded, cover image is used as card image automatically.
+
+  Show live preview of how store card will look on customer website.
+  Show live preview of how store banner will look on store detail page.
+
+STEP 3 — Location & Contact
+  Fields:
+  - Full Address (text input)
+  - City (dropdown — from admin-configured supported cities)
+  - Province / State (text input)
+  - Google Maps Link (optional text input)
+  - Map Pin (Google Maps embed — user can drop pin to set lat/lng)
+    If Google Maps API not available, show text fields for latitude/longitude.
+
+STEP 4 — Opening Hours
+  For each day of the week (Monday through Sunday):
+  - Toggle: Open / Closed
+  - If Open: From time (time picker) → To time (time picker)
+  - Option: "Same hours every day" checkbox — sets all days at once
+  - Option: Add "Holiday Hours" note
+
+  Preview box showing formatted hours like:
+  Mon–Fri: 9:00 AM – 9:00 PM
+  Sat–Sun: 10:00 AM – 6:00 PM
+
+  Explain: "Your store will automatically show as Open/Closed based on these hours."
+
+STEP 5 — Store Services & Amenities
+  Fields:
+  - Services offered (multi-select checkboxes):
+    [ ] Express Pickup
+    [ ] Curbside Pickup
+    [ ] Store Delivery
+    [ ] Pre-Order Available
+    [ ] Custom Cuts
+    [ ] Bulk Orders
+
+  - Amenity Tags (tag input — up to 5 custom tags):
+    Suggestions: "Free Parking", "Halal Certified", "Family Friendly",
+    "Air Conditioned", "Card Payment", "24/7", "Wheelchair Accessible"
+    User types and presses Enter or comma to add. Click X to remove.
+
+  - Minimum Order Amount (number input, optional)
+  - Convenience Fee (number input, optional — platform default shown)
+  - Average Preparation Time (dropdown: 10/15/20/30/45/60 minutes)
+
+STEP 6 — Premium Fresh Section (Halal Meat Feature)
+  This section appears on the store detail page as a highlighted featured block.
+
+  Fields:
+  - Enable Premium Fresh Section (toggle — default ON)
+  - Section Heading (text input — default: "Premium Fresh Halal Meat")
+  - Description (textarea — max 200 chars)
+  - Available Cut Tags (tag input — up to 5):
+    Suggestions: "Boneless", "Bone-In", "Whole Cut", "Cubed", "Ground",
+    "Custom Cut", "Half", "Quarter"
+  - Bullet Point 1 (text input — e.g. "Cut fresh to your specification")
+  - Bullet Point 2 (text input — e.g. "100% Halal certified")
+  - Bullet Point 3 (text input — e.g. "Same-day preparation available")
+  - Button Text (text input — default: "Order Fresh Meat")
+  - Button Link (text input — optional, links to a category or external page)
+
+  Show live preview of how this section will look.
+
+STEP 7 — Product Categories Setup
+  This defines the store's menu structure.
+
+  Instruction text: "Add your product categories. These become the navigation tabs
+  on your store page. Customers can click each tab to browse that category."
+
+  Interface:
+  - List of added categories with drag-handle to reorder
+  - Each category has: Name input, Active toggle, Delete button
+  - "Add Category" button adds a new row
+  - Minimum 1 category required
+
+  Suggestions (pre-fill buttons to quickly add):
+  "Fresh Meat", "Poultry", "Lamb & Goat", "Beef",
+  "Frozen Foods", "Dairy & Eggs", "Spices & Masala",
+  "Packaged Groceries", "Fruits & Vegetables",
+  "Bakery", "Beverages", "Household", "Personal Care"
+
+  User can type any custom category name.
+  Slug is auto-generated from name (lowercase, hyphenated).
+
+STEP 8 — Review & Submit
+  Show a complete summary card of everything entered:
+  - Store card preview (exactly as it will appear on customer website)
+  - Store detail page preview (scrollable mockup)
+  - All settings listed for review
+
+  Two buttons:
+  - "Edit" buttons next to each section to jump back
+  - "Submit for Approval" (primary CTA)
+
+  On submit (mode = 'store-owner'):
+  - storeStatus → 'pending'
+  - onboardingCompleted → true
+  - Emit socket event: 'new_store_application' to /admin namespace
+  - Admin gets real-time notification
+  - Show success screen: "Your store has been submitted for review.
+    We'll notify you within 24-48 hours."
+  - Redirect to /store-portal/dashboard showing "Pending Approval" status banner
+
+  On submit (mode = 'admin'):
+  - storeStatus → 'approved' immediately (auto-approve)
+  - onboardingCompleted → true
+  - showOnWebsite → true
+  - No pending review needed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3 — STORE OWNER PORTAL ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3A — Dashboard Status Banner
+  If storeStatus = 'pending':   Show amber banner "Your store is under review"
+  If storeStatus = 'approved':  Show green banner with confetti "Your store is live!"
+    -- This banner auto-appears when admin approves (via Socket.IO, no refresh needed)
+  If storeStatus = 'declined':  Show red banner with reason + "Resubmit" button
+  If storeStatus = 'suspended': Show red banner with reason
+
+  Socket.IO listener in store portal:
+  socket.on('store_status_changed', (data) => {
+    if (data.storeId === currentStoreId) updateStatusBanner(data.status, data.reason)
+  })
+
+3B — Store Controls (Top of Dashboard)
+  Two prominent toggle switches side by side:
+
+  Toggle 1: "Store Active / Closed"
+    - When ON: Store shows as open, accepts orders
+    - When OFF: Store shows as temporarily closed, no new orders
+    - isActiveManual updates in DB
+    - Emit: socket.emit('store_availability_changed', {storeId, isActive})
+    - Customer website receives and updates store card badge instantly
+
+  Toggle 2: "Show on Website"
+    - When ON: Store visible to customers
+    - When OFF: Store hidden from customer website (maintenance mode)
+    - showOnWebsite updates in DB
+    - Emit: socket.emit('store_visibility_changed', {storeId, visible})
+    - Customer website receives and removes/adds store from listing instantly
+
+  Auto-status indicator:
+  - Show small info text: "Auto-opens at 9:00 AM today" or "Auto-closes at 9:00 PM"
+  - Based on opening hours — a cron job runs every minute to check and update isCurrentlyOpen
+
+3C — Store Settings Page (/store-portal/settings)
+  Allow editing ALL onboarding data after submission.
+  Same design as onboarding but in a tabbed settings layout.
+  Uses same <StoreSetupWizard> component in edit mode.
+
+  Tabs: Basic Info | Visuals | Location | Hours | Services | Premium Fresh | Categories
+
+  Each tab saves independently with a "Save Changes" button.
+  On save:
+  - Update DB
+  - Emit socket event with changed data
+  - Customer website and admin panel reflect changes in real time
+
+  If store is already approved and owner changes significant fields (logo, name):
+  - Show warning: "Some changes may require re-review by admin"
+  - Do NOT change storeStatus back to pending (just notify admin via notification)
+
+3D — Product Management (/store-portal/products)
+  Only available after store is approved (storeStatus = 'approved').
+  If pending: show message "You can add products after your store is approved."
+
+  Products page layout:
+  - Category filter tabs at top (from store's categories, uses <CategoryTabNav>)
+  - "All Products" tab first
+  - Search bar
+  - "Add New Product" button (primary)
+  - Product grid: 4 columns desktop, 3 tablet, 2 mobile
+
+  Each product card shows:
+  - Main image
+  - Product name
+  - Price (with discount badge if applicable)
+  - Category tag
+  - Approval status badge: "Pending" (amber) | "Approved" (green) | "Rejected" (red)
+  - If rejected: show rejection reason tooltip on hover
+  - Stock indicator: "In Stock" / "Low Stock" / "Out of Stock"
+  - Edit and Delete action buttons
+
+  ADD / EDIT PRODUCT — uses shared <ProductForm mode="add|edit" adminMode={false} />
+  Full screen modal or page. Same 2-column layout as described in Part 9.
+
+  On submit for approval:
+  - approvalStatus → 'pending'
+  - isApproved → false
+  - Emit: socket.emit('new_product_pending', {productId, storeId, productName})
+  - Admin /admin namespace receives and updates pending count badge instantly
+
+3E — Real-time Inventory Updates
+  When stock quantity is updated:
+  - Emit: socket.emit('product_stock_updated', {productId, storeId, newQty})
+  - Customer website updates stock badge on product card in real time
+  - If stock hits 0: product shows "Out of Stock" badge, add-to-cart disabled
+  - If stock goes from 0 to available: product becomes orderable again
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 4 — ADMIN PORTAL ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4A — Store Management (/admin/stores)
+
+Tabs: Pending | Active | Suspended | Declined | All
+
+Pending Applications tab:
+  Real-time counter badge on tab (updates via Socket.IO when new application arrives)
+
+  Each pending store card shows:
+  - Store name, owner name, city, submitted date
+  - "View Details" button → opens full store detail panel
+
+  Detail panel shows ALL onboarding data:
+  - Store info, visuals, location, hours
+  - Halal certificate (if uploaded — show image/PDF viewer inline)
+  - Premium fresh section preview
+  - Categories list
+
+  Action buttons:
+  - [APPROVE] button → green
+    On click: show confirmation. On confirm:
+    - storeStatus → 'approved'
+    - showOnWebsite → true
+    - Emit: socket.emit('store_status_changed', {storeId, status:'approved'})
+    - Store portal receives and shows green banner instantly (no refresh)
+    - Send email to store owner
+
+  - [DECLINE] button → red
+    On click: show modal asking for decline reason (required text)
+    On confirm:
+    - storeStatus → 'declined'
+    - rejectionReason → entered text
+    - Emit: socket.emit('store_status_changed', {storeId, status:'declined', reason})
+    - Store portal receives and shows red banner with reason instantly
+    - Send email to store owner with reason
+
+  - [Request More Info] button → orange
+    Opens chat with store owner
+
+Active Stores table columns:
+  Store Name | Owner | City | Status | Open/Closed | Show on Website | Orders | Revenue | Actions
+
+Per-store Actions dropdown:
+  - View Store (opens store page in new tab)
+  - Edit Store Details (uses <StoreSetupWizard mode="admin" initialData={storeData} />)
+  - Approve Products (quick link to product approval for this store)
+  - [SUSPEND] → requires reason
+    On suspend:
+    - storeStatus → 'suspended'
+    - isActiveManual → false
+    - showOnWebsite → false
+    - Emit: socket.emit('store_status_changed', {storeId, status:'suspended', reason})
+    - All portals reflect instantly
+  - [UNSUSPEND] → restores previous state
+  - [DELETE] → requires confirmation, soft-delete
+
+Admin Store Controls (same as store owner dashboard):
+  Two toggles per store in the table row using <StoreStatusToggles />:
+  - Active/Closed toggle
+  - Show on Website toggle
+  Both work identically with same real-time Socket.IO events.
+
+4B — Add Store Directly (/admin/stores/new)
+  Uses the SHARED <StoreSetupWizard mode="admin" /> component.
+  Same 8-step wizard. Same fields. Same previews.
+  Admin-added stores are auto-approved (storeStatus → 'approved' immediately).
+  Admin can assign an existing user as store owner, or create a new user account for them.
+
+4C — Product Approvals (/admin/products/pending)
+  Real-time counter badge on sidebar nav item.
+
+  Product approval queue:
+  - Product image, name, store name, category, price, submitted date
+  - "View Full Details" → opens same <ProductDetailModal> used on customer site
+
+  Actions per product:
+  - [APPROVE] → isApproved: true, approvalStatus: 'approved'
+    Emit: socket.emit('product_approved', {productId, storeId})
+    Store portal status badge changes from "Pending" to "Approved" instantly
+    Customer website can now show the product
+
+  - [REJECT] → requires rejection reason
+    approvalStatus: 'rejected', rejectionReason: entered text
+    Emit: socket.emit('product_rejected', {productId, storeId, reason})
+    Store portal shows red badge + reason on the product card
+
+4D — Admin Adding Products for a Store
+  From active store detail page, admin sees "Add Product" button.
+  Opens the shared <ProductForm mode="add" adminMode={true} storeId={storeId} />
+  Admin-added products are auto-approved.
+  Store owner sees admin-added products with "Added by Admin" indicator badge.
+
+4E — Real-time Admin Dashboard Updates
+  All these update without page refresh via Socket.IO /admin namespace:
+  - Pending store applications counter
+  - Pending product approvals counter
+  - New orders counter
+  - Store online/offline status in store list
+  - Revenue numbers (update when orders complete)
+  - New user registrations counter
+  - Chat unread count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 5 — CUSTOMER WEBSITE ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5A — Store Listing (Real-time Synced)
+
+Only show stores where:
+  storeStatus = 'approved' AND showOnWebsite = true AND isApproved = true
+
+Customer website listens via Socket.IO /customer namespace:
+  'store_visibility_changed' → add/remove store from listing instantly
+  'store_availability_changed' → update open/closed badge on store card
+  'store_status_changed' → remove store if suspended/declined
+
+STORE CARD DESIGN — Keep existing design, enhance with:
+  - Store name (bold)
+  - Store tagline (if set — shown below name, smaller text)
+  - Card image (4:3 ratio — uses cardImage if set, else coverImage)
+  - Logo overlaid bottom-left on card image
+  - Rating (stars + number)
+  - Open/Closed badge (LIVE — auto-updates based on opening hours + manual toggle)
+    Green "Open" pill or Gray "Closed" pill
+  - Halal Certified badge (gold — if in amenityTags or isHalalCertified)
+  - Amenity tags (show up to 3 from amenityTags array)
+  - Pickup time estimate
+  - Convenience fee
+  - Minimum order amount
+
+5B — Store Detail Page — Keep existing design, enhance:
+
+Navigation Tabs (from store's categories):
+  Uses <CategoryTabNav /> shared component.
+  Dynamically generated from the store's categories table.
+  First tab: "All" (shows all products)
+  Then: one tab per active category, in sortOrder order
+
+  Real-time sync: if store owner adds/removes/renames a category while customer
+  is on the page — tabs update via Socket.IO without page refresh.
+
+Premium Fresh Section:
+  If store has premiumFreshEnabled = true:
+  Show the premium fresh block between the store header and the product grid.
+
+  Layout: dark background section (existing design) with:
+  - Heading (from premiumFreshHeading)
+  - Description (from premiumFreshDesc)
+  - Cut tags as pill badges (from premiumFreshCutTags)
+  - 3 bullet points with checkmark icons
+  - CTA button (text from premiumFreshButtonText)
+
+Product Grid — RESPONSIVE LAYOUT:
+  Desktop (≥1440px wide screen):   max 8 products per row
+  Laptop (1024px–1439px):          max 6 products per row
+  Tablet (768px–1023px):           4 products per row
+  Mobile landscape (480px–767px):  3 products per row
+  Mobile portrait (<480px):        2 products per row, HORIZONTAL SCROLL per row
+
+  Implementation for mobile:
+  - Each category section shows ONE horizontal scrollable row
+  - Row height is fixed (product card height)
+  - Left/right arrow buttons appear on hover (desktop) or always visible (mobile)
+  - Touch/swipe works on mobile
+  - If all products fit in one row, no arrows shown
+
+  For desktop: products wrap to multiple rows normally (no horizontal scroll)
+
+  IMPORTANT: Keep existing product card design exactly as-is.
+  Only change the grid/layout behavior.
+
+5C — Product Detail — Full Screen Modal
+
+When user clicks any product card: open <ProductDetailModal />.
+
+  Modal specs:
+  - Width: 85vw, Height: 85vh
+  - Centered on screen, background overlay: semi-transparent dark
+  - Close button (X) top-right, ESC key closes, click outside closes
+
+  Modal layout (2-column on desktop, single column on mobile):
+
+  LEFT COLUMN (40% width):
+  - Main product image (large, full width of column)
+  - Thumbnail strip below: up to 4 image thumbnails
+    Click thumbnail → changes main image (smooth transition)
+
+  RIGHT COLUMN (60% width, scrollable):
+  - Category breadcrumb (Store Name > Category Name)
+  - Product name (large heading)
+  - Certification badges (colored pills)
+  - Freshness label (if set — green pill)
+  - Rating (stars + review count)
+
+  - Pricing section:
+    If no sizes: show Price + discount (strikethrough original if discounted)
+    If has sizes: show size selector buttons, price updates on selection
+    If price-per-kg: show "PKR X.XX / kg" with weight selector
+
+  - Short description
+
+  - Add to Cart section:
+    Quantity selector (- / number / +)
+    "Add to Cart" button (full width, primary color)
+    Stock status badge
+
+  - Tabs: [Product Details] [Ingredients] [Directions]
+    Only show tabs that have content.
+    Product Details tab: long description
+    Ingredients tab: ingredients text
+    Directions tab: how to use
+
+  KEEP existing design system — same colors, fonts, shadows as rest of site.
+
+5D — Real-time Product Updates on Customer Website
+
+  Socket.IO /customer namespace listeners:
+
+  'product_approved' → if currently viewing that store's page:
+    Add product to grid in correct category (smooth fade-in animation)
+
+  'product_stock_updated' → update stock badge on product card and in open modal
+    If stock → 0: show "Out of Stock", disable add-to-cart
+    If stock → available: show "In Stock", enable add-to-cart
+
+  'store_availability_changed' → update Open/Closed badge on store card and store header
+
+  'store_visibility_changed' → if store becomes hidden: show toast "This store is
+    temporarily unavailable" and redirect to /stores after 3 seconds
+
+  'product_rejected' → remove product from view if currently showing
+
+  'order_status_changed' → update order status on order tracking page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 6 — SOCKET.IO EVENTS MASTER LIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Define ALL these events in server/src/sockets/events.ts
+
+Server → Admin (/admin namespace):
+  'new_store_application'      { storeId, storeName, ownerName, submittedAt }
+  'new_product_pending'        { productId, storeId, storeName, productName }
+  'store_availability_changed' { storeId, isActive }
+  'store_visibility_changed'   { storeId, visible }
+  'product_stock_updated'      { productId, storeId, newQty, productName }
+  'new_order'                  { orderId, storeId, customerId, total, itemCount }
+  'order_status_changed'       { orderId, storeId, customerId, newStatus }
+  'order_cancelled'            { orderId, storeId, customerId, reason }
+  'new_user_registered'        { userId, name, email, role, joinedAt }
+  'user_banned'                { userId, reason }
+  'new_chat_message'           { conversationId, senderId, senderRole, preview }
+
+Server → Store (/store namespace):
+  'store_status_changed'       { storeId, status, reason? }
+  'product_approved'           { productId, productName }
+  'product_rejected'           { productId, productName, reason }
+  'admin_store_update'         { storeId, updatedFields }
+  'new_order'                  { orderId, customerId, total, itemCount }
+  'order_status_changed'       { orderId, newStatus }
+  'order_cancelled'            { orderId, reason }
+  'new_chat_message'           { conversationId, senderId, senderRole, preview }
+
+Server → Customer (/customer namespace):
+  'store_availability_changed' { storeId, isActive, isCurrentlyOpen }
+  'store_visibility_changed'   { storeId, visible }
+  'product_approved'           { productId, storeId, productData }
+  'product_stock_updated'      { productId, storeId, newQty }
+  'store_status_changed'       { storeId, status }
+  'order_status_changed'       { orderId, newStatus }
+  'new_chat_message'           { conversationId, senderId, senderRole, preview }
+  'user_banned'                { userId }
+
+Emit pattern for every mutation:
+  After every DB update that affects other portals, call:
+  emitToRelevantNamespaces(eventName, data)
+
+  This function determines which namespaces to broadcast to
+  and emits to all connected sockets in those namespaces.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 7 — OPENING HOURS AUTO-STATUS CRON JOB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create/update cron job that runs every minute:
+
+  checkStoreOpenStatus()
+
+  For each active store (storeStatus = 'approved'):
+    1. Get current day of week and current time
+    2. Look up store's opening hours for today
+    3. Determine if store should be open or closed
+    4. If isCurrentlyOpen has changed:
+       - Update isCurrentlyOpen in DB
+       - Emit 'store_availability_changed' to /customer namespace
+       - This updates all open customer browser tabs in real time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 8 — API ROUTES TO ADD / UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All routes must emit appropriate Socket.IO events after DB mutations.
+
+STORE OWNER routes:
+  POST   /api/store/onboarding/step/:step     Save onboarding step data
+  GET    /api/store/onboarding/status         Get current onboarding progress
+  POST   /api/store/onboarding/submit         Final submission
+
+  GET    /api/store/settings                  Get all store settings
+  PATCH  /api/store/settings/basic            Update basic info
+  PATCH  /api/store/settings/visuals          Update logo/banner/card image
+  PATCH  /api/store/settings/hours            Update opening hours
+  PATCH  /api/store/settings/services         Update services and amenities
+  PATCH  /api/store/settings/premium-fresh    Update premium fresh section
+
+  GET    /api/store/categories                Get store's categories
+  POST   /api/store/categories                Add category
+  PATCH  /api/store/categories/:id            Edit category
+  DELETE /api/store/categories/:id            Delete category
+  PATCH  /api/store/categories/reorder        Update sort order
+
+  PATCH  /api/store/toggle-active             Toggle isActiveManual
+  PATCH  /api/store/toggle-visibility         Toggle showOnWebsite
+
+  GET    /api/store/products                  List products with filters
+  POST   /api/store/products                  Add new product (sets pending)
+  PUT    /api/store/products/:id              Edit product
+  DELETE /api/store/products/:id              Delete product
+  PATCH  /api/store/products/:id/stock        Quick stock update
+
+  GET    /api/store/orders                    List store orders with status filter
+  PATCH  /api/store/orders/:id/accept         Accept order
+  PATCH  /api/store/orders/:id/reject         Reject order (requires reason)
+  PATCH  /api/store/orders/:id/status         Advance order status
+
+  GET    /api/store/analytics                 Store analytics data
+  GET    /api/store/analytics/revenue         Revenue over time
+  GET    /api/store/analytics/products        Top products
+
+ADMIN routes:
+  POST   /api/admin/stores                    Create store directly (auto-approved)
+  PATCH  /api/admin/stores/:id/approve        Approve store
+  PATCH  /api/admin/stores/:id/decline        Decline store (requires reason)
+  PATCH  /api/admin/stores/:id/suspend        Suspend store (requires reason)
+  PATCH  /api/admin/stores/:id/unsuspend      Unsuspend store
+  PATCH  /api/admin/stores/:id/edit           Edit any store field
+  DELETE /api/admin/stores/:id                Soft delete store
+  PATCH  /api/admin/stores/:id/toggle-active      Toggle active
+  PATCH  /api/admin/stores/:id/toggle-visibility  Toggle show on website
+
+  GET    /api/admin/products/pending          List pending products (all stores)
+  PATCH  /api/admin/products/:id/approve      Approve product
+  PATCH  /api/admin/products/:id/reject       Reject product (requires reason)
+  POST   /api/admin/stores/:id/products       Add product for a store (auto-approved)
+  PUT    /api/admin/stores/:id/products/:pid  Edit product for a store
+  GET    /api/admin/categories/:storeId       Get categories for a store
+
+  GET    /api/admin/users                     List all users with filters
+  GET    /api/admin/users/:id                 User detail
+  PATCH  /api/admin/users/:id                 Edit user
+  PATCH  /api/admin/users/:id/ban             Ban user (requires reason)
+  PATCH  /api/admin/users/:id/unban           Unban user
+  DELETE /api/admin/users/:id                 Soft delete user
+  PATCH  /api/admin/users/:id/role            Change user role
+
+  GET    /api/admin/orders                    List all orders with filters
+  GET    /api/admin/orders/:id                Order detail
+  PATCH  /api/admin/orders/:id/status         Update order status
+  PATCH  /api/admin/orders/:id/cancel         Cancel order (requires reason)
+
+  GET    /api/admin/analytics                 Platform-wide analytics
+  GET    /api/admin/analytics/revenue         Revenue over time
+  GET    /api/admin/analytics/stores          Per-store analytics
+  GET    /api/admin/analytics/users           User growth
+
+  GET    /api/admin/settings                  Get platform settings
+  PATCH  /api/admin/settings                  Update platform settings
+  GET    /api/admin/settings/cities           Get cities list
+  POST   /api/admin/settings/cities           Add city
+  PATCH  /api/admin/settings/cities/:id       Edit city
+  DELETE /api/admin/settings/cities/:id       Delete city
+
+PUBLIC routes (customer website):
+  GET    /api/stores                          List approved+visible stores
+  GET    /api/stores/:slug                    Store detail + categories
+  GET    /api/stores/:slug/products           Products with category filter
+  GET    /api/stores/:slug/categories         Store categories (for nav tabs)
+
+CHAT routes (all authenticated):
+  GET    /api/chat/conversations              List my conversations
+  POST   /api/chat/conversations              Start new conversation
+  GET    /api/chat/conversations/:id          Get conversation + messages
+  POST   /api/chat/conversations/:id/messages Send message
+  PATCH  /api/chat/conversations/:id/read     Mark conversation as read
+  DELETE /api/chat/conversations/:id          Archive conversation
+
+  -- Admin only:
+  GET    /api/admin/chat/conversations        All conversations across platform
+  GET    /api/admin/chat/users/:userId        All conversations with a specific user
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 9 — SHARED COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Build each component ONCE. Import and use in all portals.
+
+<StoreSetupWizard mode="admin|store-owner" initialData={} onSubmit={} />
+  Used by: /store-portal/onboarding + /admin/stores/new + /store-portal/settings (edit mode)
+  8-step wizard, progress bar, live store card preview in sidebar.
+  Submit behavior controlled by mode prop.
+
+<ProductForm mode="add|edit" storeId={} adminMode={bool} initialData={} onSubmit={} />
+  Used by: /store-portal/products + /admin/stores/:id/products
+  2-column layout on desktop. Left: images + basic info + pricing. Right: details + inventory.
+  LEFT COLUMN sections:
+    - Product Images: up to 4 images, drag-and-drop, drag to reorder, remove button
+    - Basic Information: name, short description (max 160 chars), category dropdown
+    - Pricing: price, discount (flat or percentage toggle), price-per-kg toggle
+  RIGHT COLUMN sections:
+    - Product Details: long description, ingredients, directions
+    - Certifications & Badges: multi-select (Halal, Organic, Non-GMO, Gluten Free,
+      Vegan, Low Sodium, Diabetic Friendly) + custom badge input
+    - Product Sizes (optional): toggle → table with Size Label | Price | Stock rows
+    - Inventory: stock qty, low stock alert threshold, track inventory toggle
+    - Additional Details: is fresh meat toggle, featured toggle, freshness label,
+      tags input, sort order
+  Bottom actions: "Save as Draft" + "Submit for Approval"
+  adminMode={true}: auto-approved on save, adminMode={false}: goes to pending review
+
+<StoreCard store={} />
+  Used by: customer website store listing
+  Real-time updates via useStoreSocket(storeId) custom hook.
+  Shows: name, tagline, card image, logo overlay, rating, open/closed badge,
+  halal badge, amenity tags, pickup time, convenience fee, minimum order.
+
+<ProductDetailModal product={} isOpen={} onClose={} />
+  Used by: customer website (on any product card click)
+  Width 85vw, Height 85vh, centered, ESC closes, click outside closes.
+  Left column (40%): main image + thumbnail strip (up to 4)
+  Right column (60%, scrollable): breadcrumb, name, badges, freshness label,
+  rating, pricing section, short description, add to cart, tabs (Details/Ingredients/Directions)
+
+<StoreStatusToggles storeId={} canEdit={bool} />
+  Used by: store portal dashboard + admin store management table
+  Two toggles: "Store Active/Closed" + "Show on Website"
+  Emits socket events on change, updates DB.
+
+<CategoryTabNav categories={[]} activeCategory={} onChange={} />
+  Used by: customer website store detail page + store portal product management
+  Dynamic tabs from database. Real-time update via socket.
+
+<ChatWindow conversationId={} currentUserId={} currentUserRole={} />
+  Used by: admin portal + store portal + customer website (drawer version)
+  Header: contact name, role badge, online indicator, View Profile button
+  Message history: scrollable, own messages right-aligned, others left-aligned
+  Message types: text, image, file, order_card, product_card, system
+  Input area: multiline text, attach image, attach file, send button
+
+<ConversationList conversations={[]} onSelect={} unreadCounts={} />
+  Used by: all three portals (left sidebar of chat interface)
+  Shows: avatar, name, last message preview, timestamp, unread badge
+  Updates in real time via Socket.IO
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 10 — (SEE IMPLEMENTATION ORDER AT TOP)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Implementation order and checkpoint instructions are at the top of this document.
+Follow that order exactly.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 11 — COMPLETE PORTAL MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+11A — Additional Database Schema
+
+  -- Orders table (if not already present)
+  orders (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customerId      UUID REFERENCES users(id) ON DELETE SET NULL,
+    storeId         UUID REFERENCES stores(id) ON DELETE CASCADE,
+    status          TEXT DEFAULT 'pending',
+      -- 'pending' | 'confirmed' | 'in_progress' | 'ready' | 'delivered' | 'cancelled'
+    items           JSONB NOT NULL,
+      -- [{productId, name, qty, price, size?, image}]
+    subtotal        NUMERIC(10,2) NOT NULL,
+    convenienceFee  NUMERIC(10,2) DEFAULT 0,
+    total           NUMERIC(10,2) NOT NULL,
+    paymentMethod   TEXT,
+    paymentStatus   TEXT DEFAULT 'pending',
+      -- 'pending' | 'paid' | 'refunded'
+    cancelReason    TEXT,
+    cancelledBy     TEXT,
+    notes           TEXT,
+    createdAt       TIMESTAMPTZ DEFAULT now(),
+    updatedAt       TIMESTAMPTZ DEFAULT now()
+  )
+
+  -- Activity log table
+  activity_logs (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actorId     UUID REFERENCES users(id) ON DELETE SET NULL,
+    actorRole   TEXT,
+    action      TEXT NOT NULL,
+    entityType  TEXT,  -- 'store' | 'product' | 'order' | 'user'
+    entityId    UUID,
+    details     JSONB,
+    createdAt   TIMESTAMPTZ DEFAULT now()
+  )
+
+  -- Platform settings table
+  platform_settings (
+    key         TEXT PRIMARY KEY,
+    value       JSONB NOT NULL,
+    updatedAt   TIMESTAMPTZ DEFAULT now()
+  )
+
+  -- Cities table
+  cities (
+    id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name      TEXT NOT NULL UNIQUE,
+    isActive  BOOLEAN DEFAULT true,
+    sortOrder INT DEFAULT 0
+  )
+
+  CREATE INDEX ON orders(storeId, status, createdAt);
+  CREATE INDEX ON orders(customerId, createdAt);
+  CREATE INDEX ON activity_logs(entityType, entityId, createdAt);
+
+11B — Admin: Full User Management (/admin/users)
+
+  Tabs: All Users | Customers | Store Owners | Admins | Banned
+
+  User table columns:
+    Avatar | Full Name | Email | Phone | Role | Joined Date |
+    Last Active | Total Orders | Status | Actions
+
+  Per-user Actions:
+  - View Profile — full detail panel with personal info, order history, chat history
+  - Edit User — name, email, phone, role
+  - Ban / Unban — requires reason; banned users cannot login; their active session
+    is terminated immediately via Socket.IO emit 'user_banned' to kick them
+  - Reset Password — send reset email
+  - View Order History
+  - View Chat History
+  - Assign as Store Owner — dropdown to assign to a store
+  - Delete Account — requires confirmation, soft-delete
+
+  Real-time sync:
+  - When a new user registers → admin user list updates instantly
+  - When a user is banned → their socket connection is forcibly disconnected
+  - Emit: 'user_banned' → user is kicked from all Socket.IO namespaces instantly
+
+11C — Admin: Full Store Management Additions
+
+  Everything in Part 4 PLUS:
+
+  Store Detail Panel (full management view):
+  - All onboarding data editable inline (uses <StoreSetupWizard mode="admin" />)
+  - Opening hours editor
+  - Categories management (add/remove/reorder)
+  - Products list for that store with approve/reject per item
+  - Order history for that store
+  - Revenue analytics chart (daily/weekly/monthly)
+  - Chat with store owner button (opens <ChatWindow> directly)
+  - Activity log: timestamp | actor | action | details
+
+  Bulk Actions on store list:
+  - Select multiple → Bulk Approve / Bulk Suspend / Bulk toggle visibility
+
+11D — Admin: Full Product Management (/admin/products)
+
+  Tabs: Pending Approval | All Products | Rejected | Featured
+
+  All Products table columns:
+    Image | Product Name | Store | Category | Price | Stock |
+    Approval Status | Featured | Created | Actions
+
+  Actions per product:
+  - View Details (uses <ProductDetailModal> — read-only)
+  - Edit Product (uses <ProductForm adminMode={true} /> — auto-approved on save)
+  - Approve / Reject
+  - Toggle Featured
+  - Delete
+
+  Bulk Actions:
+  - Bulk Approve / Bulk Reject (with single shared reason text)
+  - Bulk toggle featured
+
+11E — Admin: Order Management (/admin/orders)
+
+  Tabs: All Orders | Pending | Confirmed | In Progress | Ready | Delivered | Cancelled
+
+  Order table columns:
+    Order ID | Customer | Store | Items Count | Total | Status |
+    Payment | Placed At | Actions
+
+  Order Detail Panel:
+  - Customer info (name, phone, email)
+  - Store info (name, phone)
+  - Full item list with image, name, qty, price per item
+  - Order timeline showing each status change with timestamp
+  - Payment info (method, status)
+  - Notes from customer
+  - Chat with Customer button (opens <ChatWindow>)
+  - Chat with Store button (opens <ChatWindow>)
+  - Status update dropdown — admin can manually push to any stage
+  - Cancel Order button (requires reason)
+
+  Real-time sync:
+  - New orders appear at top instantly
+  - Status changes reflect without refresh
+  - Admin status change → emits to both customer and store namespaces simultaneously
+
+11F — Admin: Analytics Dashboard (/admin/analytics)
+
+  Metrics cards (all update in real-time via Socket.IO):
+  - Total Revenue — today / this week / this month / all time
+  - Total Orders — same time breakdowns
+  - Active Stores count
+  - Registered Users count
+  - Pending Approvals — stores + products combined
+  - Average Order Value
+
+  Charts:
+  - Revenue over time — line chart with daily/weekly/monthly toggle
+  - Orders by store — bar chart showing top 10 stores
+  - New user registrations — line chart over time
+  - Order status distribution — pie chart
+  - Peak ordering hours — bar chart (hours 0–23)
+
+  All chart data refreshes when relevant socket events fire.
+
+11G — Admin: Settings (/admin/settings)
+
+  Tabs: General | Cities | Delivery | Notifications | Appearance | Roles
+
+  General Settings:
+  - Platform name, tagline
+  - Platform logo, favicon (image upload)
+  - Contact email, phone, address
+  - Currency symbol and code
+  - Maintenance mode toggle — when ON: customer website shows maintenance page,
+    all customer socket connections receive 'maintenance_mode' event
+
+  Cities Management:
+  - List of all configured cities with name, status, sort order
+  - Add City, Edit City, Remove City
+  - Toggle city active/inactive (inactive cities don't appear in store onboarding)
+
+  Delivery Settings:
+  - Default convenience fee (used if store hasn't set their own)
+  - Default minimum order amount
+  - Available preparation time options
+
+  Notification Settings:
+  - Toggle email notifications per event type (approvals, rejections, orders, etc.)
+  - SMS notifications toggle
+  - Push notification toggle per event type
+
+  Roles & Permissions:
+  - Table showing each role (admin, store_owner, customer) with toggle per permission
+  - Permissions: add_products, approve_products, manage_users, view_analytics,
+    manage_settings, initiate_chat, etc.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 12 — STORE OWNER PORTAL ADDITIONAL FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+12A — Store Owner: Order Management (/store-portal/orders)
+
+  Tabs: New Orders | In Progress | Ready | Completed | Cancelled
+
+  New order notification (when customer places order):
+  - Browser notification sound plays
+  - Bell icon in nav shows red badge with count
+  - New order card appears at top of "New Orders" tab instantly (Socket.IO)
+  - Toast notification: "New order received!"
+
+  Order card shows:
+  - Order ID (short format)
+  - Customer first name + last initial only (e.g. "Ahmed K.")
+  - Item list with quantities
+  - Total amount
+  - Any customer notes
+  - Time elapsed since placed (live counter: "2 min ago")
+  - Action buttons: [Accept Order] [Reject Order]
+
+  On Accept:
+  - Order status → 'confirmed'
+  - Emit: 'order_status_changed' to /customer namespace
+  - Customer receives real-time notification "Your order has been confirmed!"
+  - Order moves to "In Progress" tab
+
+  Order status flow (store owner manually advances each step):
+    New Orders → [Accept] → In Progress → [Mark Ready] → Ready → [Mark Delivered] → Completed
+  Each status change emits 'order_status_changed' to customer namespace.
+
+  On Reject:
+  - Requires rejection reason (text input in confirmation modal)
+  - Order status → 'cancelled', cancelledBy → 'store', cancelReason → entered text
+  - Emit: 'order_cancelled' to customer namespace
+  - Customer notified instantly with the reason
+
+  Socket events store portal listens for:
+    'new_order'       → play sound + show toast + add card to New Orders tab
+    'order_cancelled' → if customer cancelled, move to Cancelled tab instantly
+
+12B — Store Owner: Analytics (/store-portal/analytics)
+
+  Metrics cards:
+  - Today's revenue
+  - This week's order count
+  - Best-selling product (name + units sold)
+  - Average order value
+  - Total unique customers
+
+  Charts:
+  - Revenue over time — line chart with daily/weekly/monthly toggle
+  - Orders by status — pie chart
+  - Top products by order count — horizontal bar chart
+  - Busiest hours — bar chart (hours 0–23)
+
+12C — Store Owner: Profile & Account Settings (/store-portal/account)
+
+  - Update personal info: name, email, phone number
+  - Change password (requires current password)
+  - Notification preferences:
+    - New order notifications (browser, email, SMS — toggle each)
+    - Order status update notifications
+    - Chat message notifications
+    - Admin approval/rejection notifications
+  - Active sessions list — shows all logged-in devices with option to log out each
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 13 — REAL-TIME CHAT SYSTEM (FULL IMPLEMENTATION)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is a first-class feature built from scratch.
+Database tables, Socket.IO events, API routes, and shared UI components.
+
+13A — Database Schema
+
+  -- Conversations table
+  conversations (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type                TEXT NOT NULL,
+      -- 'admin_store'    : Admin ↔ Store Owner
+      -- 'admin_customer' : Admin ↔ Customer
+      -- 'store_customer' : Store Owner ↔ Customer (only if customer interacted)
+    adminId             UUID REFERENCES users(id) ON DELETE SET NULL,
+    storeId             UUID REFERENCES stores(id) ON DELETE CASCADE,
+    customerId          UUID REFERENCES users(id) ON DELETE SET NULL,
+    storeOwnerId        UUID REFERENCES users(id) ON DELETE SET NULL,
+    lastMessageAt       TIMESTAMPTZ DEFAULT now(),
+    lastMessageText     TEXT,
+    isArchivedAdmin     BOOLEAN DEFAULT false,
+    isArchivedStore     BOOLEAN DEFAULT false,
+    isArchivedCustomer  BOOLEAN DEFAULT false,
+    createdAt           TIMESTAMPTZ DEFAULT now()
+  )
+
+  -- Messages table
+  messages (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversationId  UUID REFERENCES conversations(id) ON DELETE CASCADE,
+    senderId        UUID REFERENCES users(id) ON DELETE SET NULL,
+    senderRole      TEXT NOT NULL,
+      -- 'admin' | 'store_owner' | 'customer'
+    content         TEXT,
+    messageType     TEXT DEFAULT 'text',
+      -- 'text' | 'image' | 'file' | 'order_card' | 'product_card' | 'system'
+    attachmentUrl   TEXT,
+    attachmentName  TEXT,
+    metadata        JSONB,
+      -- order_card:   { orderId, orderTotal, itemCount, status }
+      -- product_card: { productId, productName, price, image }
+    isRead          BOOLEAN DEFAULT false,
+    readAt          TIMESTAMPTZ,
+    createdAt       TIMESTAMPTZ DEFAULT now()
+  )
+
+  -- Message read receipts
+  message_reads (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    messageId   UUID REFERENCES messages(id) ON DELETE CASCADE,
+    userId      UUID REFERENCES users(id) ON DELETE CASCADE,
+    readAt      TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(messageId, userId)
+  )
+
+  CREATE INDEX ON messages(conversationId, createdAt);
+  CREATE INDEX ON conversations(storeId, lastMessageAt);
+  CREATE INDEX ON conversations(customerId, lastMessageAt);
+  CREATE INDEX ON conversations(adminId, lastMessageAt);
+
+13B — Who Can Chat With Whom
+
+  Admin       ↔  Any Store Owner    (type: 'admin_store')
+  Admin       ↔  Any Customer       (type: 'admin_customer')
+  Store Owner ↔  Admin              (same as above, store owner can initiate)
+  Store Owner ↔  Any customer who has:
+                 - Placed an order at this store, OR
+                 - Added any product from this store to their cart
+                 (type: 'store_customer')
+  Customer    ↔  Store Owner of a store they ordered from or carted from
+  Customer    ↔  Admin (as support contact)
+
+  Store owner CANNOT initiate chat with a customer who has never interacted
+  with their store. This protects customer privacy.
+
+13C — Chat UI — Admin Portal (/admin/chat)
+
+  Layout: Full-page two-panel layout (standard messenger style)
+
+  Left panel — Conversation list (uses <ConversationList> component):
+  - Search bar (search by user name or message content)
+  - Filter tabs: All | Store Owners | Customers
+  - Each row: avatar, name, role badge, last message preview, timestamp, unread badge
+  - Sorted by lastMessageAt descending
+  - Real-time: new messages bubble conversation to top instantly
+
+  Right panel — Active conversation (uses <ChatWindow> component):
+  - Header: contact name, role badge, online/offline indicator, View Profile button
+  - Message history (scrollable, newest at bottom)
+    - Own messages right-aligned, contact messages left-aligned
+    - Different bubble colors per role
+    - System messages centered in gray
+    - Order card: compact order summary card inline
+    - Product card: compact product card inline (customer can click to open modal)
+    - Image messages: thumbnail (click to expand)
+    - File messages: filename + download icon
+    - Read receipts: "Read" with timestamp below sent messages
+  - Message input area:
+    - Multiline text input (Enter to send, Shift+Enter for newline)
+    - Attach image button (file picker, preview before send)
+    - Attach file button (file picker, filename shown before send)
+    - Send button
+
+  Starting a new conversation (Admin initiating):
+  - "New Message" button → modal: search all users by name/email
+  - Select user → creates or opens existing conversation
+
+13D — Chat UI — Store Portal (/store-portal/chat)
+
+  Identical layout to Admin chat (uses same <ChatWindow> + <ConversationList>)
+  with these differences:
+
+  Left panel shows conversations with:
+  - Admin (one conversation, always present as "Contact Support")
+  - Customers who have ordered from or carted from this store
+
+  Store owner CANNOT search all platform users or start chats with arbitrary users.
+
+  Starting a conversation with a customer (Store Owner):
+  - Only from within order detail in /store-portal/orders
+  - Each order has a "Message Customer" button
+  - This creates or opens the store_customer conversation for that customer
+
+  When customer messages the store:
+  - Store portal chat badge increments
+  - "New message from customer" toast appears with link to open conversation
+
+13E — Chat UI — Customer Website
+
+  Access points:
+  - Floating chat button (bottom-right) on store detail pages
+  - "Message Store" button on order tracking page
+  - "Contact Support" button for admin chat
+
+  On store detail page:
+  - Floating button shows store logo/icon with "Chat with store" tooltip
+  - Clicking opens compact chat drawer (slide-up on mobile, side panel on desktop)
+  - This is a store_customer conversation
+  - If customer has never ordered from or carted from this store:
+    show message "Place an order to chat with this store"
+
+  Chat drawer (customer-side) uses <ChatWindow> component:
+  - Compact version sized for drawer
+  - Header: store name + logo, close button
+  - Message history (scrollable)
+  - Text input + send button + image attach
+  - Same real-time behavior
+
+13F — Socket.IO Events for Chat
+
+  Each conversation has a Socket.IO room: conversation:${conversationId}
+  When user opens chat, they join all their conversation rooms.
+  Sending a message emits to the room → all participants receive it instantly.
+
+  Events:
+  'new_chat_message'      { conversationId, messageId, senderId, senderRole,
+                            content, messageType, metadata, createdAt }
+  'message_read'          { conversationId, messageId, readerId, readAt }
+  'conversation_started'  { conversationId, type, participants }
+  'user_online'           { userId }
+  'user_offline'          { userId }
+
+13G — Chat Message Types
+
+  text        Plain text. Render as bubble.
+
+  image       Upload to storage on send, store URL in attachmentUrl.
+              Render as thumbnail, click to expand full size.
+
+  file        Upload to storage, store URL + filename.
+              Render as pill: filename + size + download icon.
+
+  order_card  Sent automatically when a new order is placed.
+              System auto-creates/opens store_customer conversation and sends
+              this message type with metadata: { orderId, total, itemCount, status }
+              Renders as compact order summary card.
+
+  product_card Store owner can share a product in chat.
+              "Share Product" button lets store owner pick one of their products.
+              Renders as compact card: image + name + price.
+              Customer can click it to open <ProductDetailModal>.
+
+  system      Auto-generated event messages, centered in gray.
+              e.g. "Order #ABC123 status changed to Ready"
+
+13H — Unread Count & Notification Badges
+
+  Admin portal:
+  - Chat nav item shows total unread count across all conversations
+  - Updates in real-time
+
+  Store portal:
+  - Chat nav item shows unread count
+  - Bell icon also shows chat unreads merged with order notifications
+
+  Customer website:
+  - Floating chat button shows unread badge
+  - Browser tab title: "(3) Numa Fresh" when unread messages exist
+
+  Persistence:
+  - Unread counts stored via message_reads table
+  - On page load: fetch count from API
+  - Socket.IO updates count in real-time thereafter
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEED / TEST DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update seed file to:
+- Set onboardingCompleted = true for all existing stores
+- Set storeStatus = 'approved' for all existing approved stores
+- Create sample categories for each existing store
+  (use their existing product categories to auto-generate)
+- Set categoryId on existing products based on their category field
+- Set default values for all new columns on existing records
+- Insert default cities: Lahore, Karachi, Islamabad, Rawalpindi, Peshawar,
+  Faisalabad, Multan, Quetta, Peshawar, Hyderabad
+- Insert default platform_settings rows with sensible defaults
+- Create one sample conversation between admin and each store owner
+- Create one sample order per store with status 'delivered'

@@ -1,0 +1,839 @@
+You are working on an EXISTING project called "Numa Fresh Marketplace".
+Do NOT rebuild from scratch. Enhance and extend the existing codebase.
+
+The project is a halal grocery marketplace with:
+- Customer Website (main frontend)
+- Store Owner Portal (/store-portal)
+- Admin Panel (/admin)
+- Backend: Node.js + Express + TypeScript + Drizzle ORM + PostgreSQL
+- Real-time: Socket.IO with /customer, /store, /admin namespaces
+- Frontend: React 18 + TypeScript + Vite + TailwindCSS + shadcn/ui
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CORE REQUIREMENT — READ THIS FIRST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ALL THREE PORTALS MUST BE FULLY SYNCED IN REAL TIME.
+
+When ANYTHING changes anywhere:
+- Admin approves a store → Store owner sees "Approved" status instantly
+- Store owner updates store hours → Customer website reflects it immediately
+- Store owner adds a product → Admin sees it in pending queue instantly
+- Admin toggles store active/inactive → Customer website shows/hides store instantly
+- Store owner changes product price → Customer website updates price in real time
+- Admin suspends a store → Store portal shows suspended status + customer website hides store
+- Store owner changes opening hours → Store active/closed status auto-updates on customer website
+
+Use Socket.IO to broadcast ALL these events across /customer, /store, /admin namespaces.
+Every database mutation must emit a socket event.
+Every frontend must listen and update UI without page refresh.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 1 — DATABASE SCHEMA UPDATES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add or update these fields in the Stores table:
+
+stores table — add these columns if not already present:
+  branchName          TEXT (nullable)
+  cardImage           TEXT (nullable — separate card display image)
+  amenityTags         TEXT[] (max 5 tags — e.g. "Halal Certified", "Free Parking")
+  
+  -- Premium Fresh Section
+  premiumFreshHeading     TEXT
+  premiumFreshDesc        TEXT
+  premiumFreshCutTags     TEXT[] (max 5 — e.g. "Boneless", "Bone-In", "Cubed")
+  premiumFreshBullet1     TEXT
+  premiumFreshBullet2     TEXT
+  premiumFreshBullet3     TEXT
+  premiumFreshButtonText  TEXT
+  premiumFreshButtonLink  TEXT
+
+  -- Visibility & Status Controls
+  isActiveManual      BOOLEAN DEFAULT true  -- manual toggle by admin or store owner
+  showOnWebsite       BOOLEAN DEFAULT true  -- show/hide on customer website
+  isCurrentlyOpen     BOOLEAN DEFAULT false -- auto-calculated from opening hours
+  storeStatus         TEXT DEFAULT 'pending' 
+    -- values: 'pending' | 'approved' | 'active' | 'suspended' | 'declined' | 'deleted'
+
+  -- Onboarding
+  onboardingCompleted BOOLEAN DEFAULT false
+
+categories table (new table):
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  storeId     UUID REFERENCES stores(id) ON DELETE CASCADE
+  name        TEXT NOT NULL
+  slug        TEXT NOT NULL
+  sortOrder   INT DEFAULT 0
+  isActive    BOOLEAN DEFAULT true
+  createdAt   TIMESTAMPTZ DEFAULT now()
+  
+  UNIQUE(storeId, slug)
+
+products table — add these columns if not already present:
+  images          TEXT[] (up to 4 image URLs)
+  shortDesc       TEXT
+  discount        NUMERIC(5,2) DEFAULT 0
+  certBadges      TEXT[] (e.g. ["Halal Certified", "Organic", "Non-GMO"])
+  productDetails  TEXT (long description / HTML)
+  ingredients     TEXT
+  directions      TEXT (usage/cooking directions)
+  stockQty        INTEGER DEFAULT 0
+  lowStockAlert   INTEGER DEFAULT 5
+  sizes           JSONB (nullable — [{label: "500g", price: 5.99}, ...])
+  categoryId      UUID REFERENCES categories(id) ON DELETE SET NULL
+  isApproved      BOOLEAN DEFAULT false
+  approvalStatus  TEXT DEFAULT 'pending' 
+    -- values: 'pending' | 'approved' | 'rejected'
+  rejectionReason TEXT (nullable)
+  sortOrder       INT DEFAULT 0
+  isFeatured      BOOLEAN DEFAULT false
+
+Create these indexes:
+  CREATE INDEX ON products(storeId, categoryId, isApproved);
+  CREATE INDEX ON stores(storeStatus, showOnWebsite);
+  CREATE INDEX ON categories(storeId, sortOrder);
+
+Run migrations after schema changes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 2 — STORE OWNER ONBOARDING WALKTHROUGH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+After Store Owner logs in for the FIRST TIME (onboardingCompleted = false),
+redirect them to /store-portal/onboarding instead of dashboard.
+
+The onboarding is a multi-step wizard with a progress bar at the top.
+Show step number, step name, and completion percentage.
+Each step auto-saves as draft on "Next" — user can come back and resume.
+Show a sidebar preview of the store card updating live as they fill in details.
+
+STEP 1 — Basic Store Info
+  Fields (all required unless marked optional):
+  - Store Name (text input)
+  - Store Owner Name (text input)  
+  - Branch Name (text input, optional — placeholder: "Main Branch / Gulberg Branch")
+  - Store Tagline (text input, optional — short catchy line shown on card)
+  - About Store (textarea — min 50 chars, shown on store detail page)
+  - Phone Number (with country code selector)
+  - WhatsApp Number (optional, with country code selector)
+  - Email Address
+
+STEP 2 — Visuals
+  Fields:
+  - Store Logo (image upload — crop to 1:1 ratio, min 200x200px)
+  - Cover/Banner Image (image upload — crop to 16:5 ratio, recommended 1600x500px)
+  - Card Image (image upload — optional, crop to 4:3 ratio — shown on listing card)
+    If not uploaded, cover image is used as card image automatically.
+  
+  Show live preview of how store card will look on customer website.
+  Show live preview of how store banner will look on store detail page.
+
+STEP 3 — Location & Contact
+  Fields:
+  - Full Address (text input)
+  - City (dropdown — from admin-configured supported cities)
+  - Province / State (text input)
+  - Google Maps Link (optional text input)
+  - Map Pin (Google Maps embed — user can drop pin to set lat/lng)
+    If Google Maps API not available, show text fields for latitude/longitude.
+
+STEP 4 — Opening Hours
+  For each day of the week (Monday through Sunday):
+  - Toggle: Open / Closed
+  - If Open: From time (time picker) → To time (time picker)
+  - Option: "Same hours every day" checkbox — sets all days at once
+  - Option: Add "Holiday Hours" note
+  
+  Preview box showing formatted hours like:
+  Mon–Fri: 9:00 AM – 9:00 PM
+  Sat–Sun: 10:00 AM – 6:00 PM
+  
+  Explain: "Your store will automatically show as Open/Closed based on these hours."
+
+STEP 5 — Store Services & Amenities
+  Fields:
+  - Services offered (multi-select checkboxes):
+    [ ] Express Pickup
+    [ ] Curbside Pickup  
+    [ ] Store Delivery
+    [ ] Pre-Order Available
+    [ ] Custom Cuts
+    [ ] Bulk Orders
+  
+  - Amenity Tags (tag input — up to 5 custom tags):
+    Suggestions: "Free Parking", "Halal Certified", "Family Friendly",
+    "Air Conditioned", "Card Payment", "24/7", "Wheelchair Accessible"
+    User types and presses Enter or comma to add. Click X to remove.
+  
+  - Minimum Order Amount (number input, optional)
+  - Convenience Fee (number input, optional — platform default shown)
+  - Average Preparation Time (dropdown: 10/15/20/30/45/60 minutes)
+
+STEP 6 — Premium Fresh Section (Halal Meat Feature)
+  This section appears on the store detail page as a highlighted featured block.
+  
+  Fields:
+  - Enable Premium Fresh Section (toggle — default ON)
+  - Section Heading (text input — default: "Premium Fresh Halal Meat")
+  - Description (textarea — max 200 chars)
+  - Available Cut Tags (tag input — up to 5):
+    Suggestions: "Boneless", "Bone-In", "Whole Cut", "Cubed", "Ground",
+    "Custom Cut", "Half", "Quarter"
+  - Bullet Point 1 (text input — e.g. "Cut fresh to your specification")
+  - Bullet Point 2 (text input — e.g. "100% Halal certified")
+  - Bullet Point 3 (text input — e.g. "Same-day preparation available")
+  - Button Text (text input — default: "Order Fresh Meat")
+  - Button Link (text input — optional, links to a category or external page)
+  
+  Show live preview of how this section will look.
+
+STEP 7 — Product Categories Setup
+  This defines the store's menu structure.
+  
+  Instruction text: "Add your product categories. These become the navigation tabs
+  on your store page. Customers can click each tab to browse that category."
+  
+  Interface:
+  - List of added categories with drag-handle to reorder
+  - Each category has: Name input, Active toggle, Delete button
+  - "Add Category" button adds a new row
+  - Minimum 1 category required
+  
+  Suggestions (pre-fill buttons to quickly add):
+  "Fresh Meat", "Poultry", "Lamb & Goat", "Beef", 
+  "Frozen Foods", "Dairy & Eggs", "Spices & Masala",
+  "Packaged Groceries", "Fruits & Vegetables",
+  "Bakery", "Beverages", "Household", "Personal Care"
+  
+  User can type any custom category name.
+  Slug is auto-generated from name (lowercase, hyphenated).
+
+STEP 8 — Review & Submit
+  Show a complete summary card of everything entered:
+  - Store card preview (exactly as it will appear on customer website)
+  - Store detail page preview (scrollable mockup)
+  - All settings listed for review
+  
+  Two buttons:
+  - "Edit" buttons next to each section to jump back
+  - "Submit for Approval" (primary CTA)
+  
+  On submit:
+  - storeStatus → 'pending'
+  - onboardingCompleted → true
+  - Emit socket event: 'new_store_application' to /admin namespace
+  - Admin gets real-time notification
+  - Show success screen: "Your store has been submitted for review.
+    We'll notify you within 24-48 hours."
+  - Redirect to /store-portal/dashboard showing "Pending Approval" status banner
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3 — STORE OWNER PORTAL ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3A — Dashboard Status Banner
+  If storeStatus = 'pending': Show amber banner "Your store is under review"
+  If storeStatus = 'approved': Show green banner with confetti "Your store is live!"
+    -- This banner auto-appears when admin approves (via Socket.IO, no refresh needed)
+  If storeStatus = 'declined': Show red banner with reason + "Resubmit" button
+  If storeStatus = 'suspended': Show red banner with reason
+  
+  Socket.IO listener in store portal:
+  socket.on('store_status_changed', (data) => {
+    if (data.storeId === currentStoreId) updateStatusBanner(data.status, data.reason)
+  })
+
+3B — Store Controls (Top of Dashboard)
+  Two prominent toggle switches side by side:
+  
+  Toggle 1: "Store Active / Closed"
+    - When ON: Store shows as open, accepts orders
+    - When OFF: Store shows as temporarily closed, no new orders
+    - isActiveManual updates in DB
+    - Emit: socket.emit('store_availability_changed', {storeId, isActive})
+    - Customer website receives and updates store card badge instantly
+  
+  Toggle 2: "Show on Website"
+    - When ON: Store visible to customers
+    - When OFF: Store hidden from customer website (maintenance mode)
+    - showOnWebsite updates in DB
+    - Emit: socket.emit('store_visibility_changed', {storeId, visible})
+    - Customer website receives and removes/adds store from listing instantly
+  
+  Auto-status indicator:
+  - Show small info text: "Auto-opens at 9:00 AM today" or "Auto-closes at 9:00 PM"
+  - Based on opening hours — a cron job runs every minute to check and update isCurrentlyOpen
+
+3C — Store Settings Page (/store-portal/settings)
+  Allow editing ALL onboarding data after submission.
+  Same design as onboarding but in a tabbed settings layout:
+  
+  Tabs: Basic Info | Visuals | Location | Hours | Services | Premium Fresh | Categories
+  
+  Each tab saves independently with a "Save Changes" button.
+  On save:
+  - Update DB
+  - Emit socket event with changed data
+  - Customer website and admin panel reflect changes in real time
+  
+  If store is already approved and owner changes significant fields (logo, name):
+  - Show warning: "Some changes may require re-review by admin"
+  - Do NOT change storeStatus back to pending (just notify admin via notification)
+
+3D — Product Management (/store-portal/products)
+  Only available after store is approved (storeStatus = 'approved').
+  If pending: show message "You can add products after your store is approved."
+  
+  Products page layout:
+  - Category filter tabs at top (from store's categories)
+  - "All Products" tab first
+  - Search bar
+  - "Add New Product" button (primary)
+  - Product grid: 4 columns desktop, 3 tablet, 2 mobile
+  
+  Each product card shows:
+  - Main image
+  - Product name
+  - Price (with discount badge if applicable)
+  - Category tag
+  - Approval status badge: "Pending" (amber) | "Approved" (green) | "Rejected" (red)
+  - If rejected: show rejection reason tooltip on hover
+  - Stock indicator: "In Stock" / "Low Stock" / "Out of Stock"
+  - Edit and Delete action buttons
+  
+  ADD / EDIT PRODUCT — Full Screen Modal or Page:
+  (This exact same design is used in Admin portal when admin adds products for a store)
+  
+  Layout: 2-column on desktop (left: images + basic info, right: details + inventory)
+  
+  LEFT COLUMN:
+  
+  Section: Product Images
+  - Image upload area supporting up to 4 images
+  - Drag and drop + click to upload
+  - First image is the main/cover image
+  - Drag to reorder images
+  - Each image has a remove button
+  - Show image preview thumbnails
+  - Minimum 1 image required
+  
+  Section: Basic Information
+  - Product Name (text input, required)
+  - Short Description (textarea, max 160 chars — shown on product card)
+  - Category (dropdown — from store's categories, required)
+  
+  Section: Pricing
+  - Price (number input with currency symbol, required)
+  - Discount (number input — flat amount OR percentage toggle)
+    If discount set: show "Sale Price: $X.XX" calculated automatically
+  - Price per kg toggle (for fresh meat/produce — replaces fixed price)
+  
+  RIGHT COLUMN:
+  
+  Section: Product Details
+  - Long Description / Product Details (rich text or textarea)
+  - Ingredients (textarea — for food items)
+  - Directions / How to Use (textarea)
+  
+  Section: Certifications & Badges
+  - Multi-select checkboxes:
+    [ ] Halal Certified
+    [ ] Organic
+    [ ] Non-GMO
+    [ ] Gluten Free
+    [ ] Vegan
+    [ ] Low Sodium
+    [ ] Diabetic Friendly
+  - Plus: custom badge input (type and press Enter)
+  
+  Section: Product Sizes (Optional)
+  - Toggle: "This product has multiple sizes/variants"
+  - If enabled: show table with columns: Size Label | Price | Stock
+    - "Add Size" button adds a row
+    - Example: "500g" | $4.99 | 50 units
+    -          "1kg"  | $8.99 | 30 units
+    -          "2kg"  | $16.99| 20 units
+  
+  Section: Inventory
+  - Stock Quantity (number input)
+  - Low Stock Alert Threshold (number input — default 5)
+    When stock falls below this, show "Low Stock" badge
+  - Track Inventory toggle (if OFF, always shows "In Stock")
+  
+  Section: Additional Details
+  - Is Fresh Meat toggle (enables weight-based pricing flow)
+    If ON show: Animal Type, Available Cuts (multi-select tags)
+  - Featured Product toggle (shows in featured section)
+  - Freshness Label (text input — e.g. "Cut this morning", "Just arrived")
+  - Tags (tag input — for search)
+  - Sort Order (number — controls position in category)
+  
+  BOTTOM ACTIONS:
+  - "Save as Draft" button (saves but doesn't submit for approval)
+  - "Submit for Approval" button (saves and sends to admin queue)
+  
+  On submit:
+  - approvalStatus → 'pending'
+  - isApproved → false
+  - Emit: socket.emit('new_product_pending', {productId, storeId, productName})
+  - Admin /admin namespace receives and updates pending count badge instantly
+
+3E — Real-time Inventory Updates
+  When stock quantity is updated:
+  - Emit: socket.emit('product_stock_updated', {productId, storeId, newQty})
+  - Customer website updates stock badge on product card in real time
+  - If stock hits 0: product shows "Out of Stock" badge, add-to-cart disabled
+  - If stock goes from 0 to available: product becomes orderable again
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 4 — ADMIN PORTAL ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4A — Store Management (/admin/stores)
+
+Tabs: Pending | Active | Suspended | Declined | All
+
+Pending Applications tab:
+  Real-time counter badge on tab (updates via Socket.IO when new application arrives)
+  
+  Each pending store card shows:
+  - Store name, owner name, city, submitted date
+  - "View Details" button → opens full store detail panel
+  
+  Detail panel shows ALL onboarding data:
+  - Store info, visuals, location, hours
+  - Halal certificate (if uploaded — show image/PDF viewer inline)
+  - Premium fresh section preview
+  - Categories list
+  
+  Action buttons:
+  - [APPROVE] button → green
+    On click: show confirmation. On confirm:
+    - storeStatus → 'approved'
+    - showOnWebsite → true
+    - Emit: socket.emit('store_status_changed', {storeId, status:'approved'})
+    - Store portal receives and shows green banner instantly (no refresh)
+    - Send email to store owner
+    
+  - [DECLINE] button → red
+    On click: show modal asking for decline reason (required text)
+    On confirm:
+    - storeStatus → 'declined'
+    - rejectionReason → entered text
+    - Emit: socket.emit('store_status_changed', {storeId, status:'declined', reason})
+    - Store portal receives and shows red banner with reason instantly
+    - Send email to store owner with reason
+    
+  - [Request More Info] button → orange
+    Opens chat with store owner (existing chat system)
+
+Active Stores table columns:
+  Store Name | Owner | City | Status | Open/Closed | Show on Website | Orders | Revenue | Actions
+
+Per-store Actions dropdown:
+  - View Store (opens store page in new tab)
+  - Edit Store Details (same form as onboarding, all fields editable)
+  - Approve Products (quick link to product approval for this store)
+  - [SUSPEND] → requires reason
+    On suspend:
+    - storeStatus → 'suspended'
+    - isActiveManual → false
+    - showOnWebsite → false
+    - Emit: socket.emit('store_status_changed', {storeId, status:'suspended', reason})
+    - All portals reflect instantly
+  - [UNSUSPEND] → restores previous state
+  - [DELETE] → requires confirmation, soft-delete
+
+Admin Store Controls (same as store owner dashboard):
+  Two toggles per store in the table row:
+  - Active/Closed toggle
+  - Show on Website toggle
+  Both work identically to store owner toggles with same real-time Socket.IO events.
+
+4B — Add Store Directly (/admin/stores/new)
+  EXACT SAME DESIGN as store owner onboarding walkthrough (Part 2).
+  Same 8-step wizard. Same fields. Same previews.
+  
+  Difference: Admin-added stores are auto-approved (storeStatus → 'approved' immediately).
+  Admin can assign an existing user as store owner, or create a new user account for them.
+  
+  This page must be a SHARED COMPONENT used by both:
+  - /admin/stores/new (admin adding store)
+  - /store-portal/onboarding (store owner onboarding)
+  
+  Create a reusable <StoreSetupWizard> component that accepts:
+  - mode: 'admin' | 'store-owner'
+  - initialData (for edit mode)
+  - onSubmit callback
+  
+  The component renders identically in both portals.
+  Only the submit behavior differs (admin = auto-approve, store owner = pending review).
+
+4C — Product Approvals (/admin/products/pending)
+  Real-time counter badge on sidebar nav item.
+  
+  Product approval queue:
+  - Product image, name, store name, category, price, submitted date
+  - "View Full Details" → opens same product detail panel used in store portal
+    (read-only for admin unless admin is editing)
+  
+  Actions per product:
+  - [APPROVE] → isApproved: true, approvalStatus: 'approved'
+    Emit: socket.emit('product_approved', {productId, storeId})
+    Store portal sees product go live (status badge changes from "Pending" to "Approved")
+    Customer website can now show the product
+    
+  - [REJECT] → requires rejection reason
+    approvalStatus: 'rejected', rejectionReason: entered text
+    Emit: socket.emit('product_rejected', {productId, storeId, reason})
+    Store portal shows red badge + reason on the product card
+
+4D — Admin Adding Products for a Store
+  From active store detail page, admin sees "Add Product" button.
+  Opens the EXACT SAME product form as store portal (Part 3D).
+  Uses the same <ProductForm> shared component.
+  Admin-added products are auto-approved.
+  
+  Store owner sees admin-added products in their product list with
+  a "Added by Admin" indicator badge.
+
+4E — Real-time Admin Dashboard Updates
+  All these update without page refresh via Socket.IO /admin namespace:
+  - Pending store applications counter
+  - Pending product approvals counter  
+  - New orders counter
+  - Store online/offline status in store list
+  - Revenue numbers (update when orders complete)
+  
+  socket events admin listens for:
+  'new_store_application' → increment pending stores badge
+  'new_product_pending' → increment pending products badge
+  'store_availability_changed' → update store status in list
+  'store_visibility_changed' → update show/hide status in list
+  'product_stock_updated' → update stock in product list
+  'new_order' → increment order counter, add to live feed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 5 — CUSTOMER WEBSITE ENHANCEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5A — Store Listing (Real-time Synced)
+
+Only show stores where:
+  storeStatus = 'approved' AND showOnWebsite = true AND isApproved = true
+
+Customer website listens via Socket.IO /customer namespace:
+  'store_visibility_changed' → add/remove store from listing instantly
+  'store_availability_changed' → update open/closed badge on store card
+  'store_status_changed' → remove store if suspended/declined
+
+STORE CARD DESIGN — Keep existing design, enhance with:
+  - Store name (bold)
+  - Store tagline (if set — shown below name, smaller text)
+  - Card image (4:3 ratio — uses cardImage if set, else coverImage)
+  - Logo overlaid bottom-left on card image
+  - Rating (stars + number)
+  - Open/Closed badge (LIVE — auto-updates based on opening hours + manual toggle)
+    Green "Open" pill or Gray "Closed" pill
+  - Halal Certified badge (gold — if in amenityTags or isHalalCertified)
+  - Amenity tags (show up to 3 from amenityTags array)
+  - Pickup time estimate
+  - Convenience fee
+  - Minimum order amount
+
+5B — Store Detail Page — Keep existing design, enhance:
+
+Navigation Tabs (from store's categories):
+  These tabs are DYNAMICALLY generated from the store's categories table.
+  First tab: "All" (shows all products)
+  Then: one tab per active category, in sortOrder order
+  
+  Tab names match exactly what store owner entered in onboarding.
+  
+  When tab is clicked: smooth scroll to that category's product section
+  OR filter products to show only that category (your existing behavior — keep it).
+  
+  Real-time sync: if store owner adds/removes/renames a category while customer
+  is on the page — tabs update via Socket.IO without page refresh.
+
+Premium Fresh Section:
+  If store has premiumFreshEnabled = true:
+  Show the premium fresh block between the store header and the product grid.
+  
+  Layout: dark background section (existing design) with:
+  - Heading (from premiumFreshHeading)
+  - Description (from premiumFreshDesc)
+  - Cut tags as pill badges (from premiumFreshCutTags)
+  - 3 bullet points with checkmark icons
+  - CTA button (text from premiumFreshButtonText)
+
+Product Grid — RESPONSIVE LAYOUT:
+  Desktop (≥1440px wide screen): max 8 products per row
+  Laptop (1024px–1439px): max 6 products per row
+  Tablet (768px–1023px): 4 products per row
+  Mobile landscape (480px–767px): 3 products per row
+  Mobile portrait (<480px): 2 products per row, HORIZONTAL SCROLL per row
+  
+  Implementation for mobile:
+  - Each category section shows ONE horizontal scrollable row
+  - Row height is fixed (product card height)
+  - Left/right arrow buttons appear on hover (desktop) or always visible (mobile)
+  - Touch/swipe works on mobile
+  - If all products fit in one row, no arrows shown
+  
+  For desktop: products wrap to multiple rows normally (no horizontal scroll)
+  
+  IMPORTANT: Keep existing product card design exactly as-is.
+  Only change the grid/layout behavior.
+
+5C — Product Detail — Full Screen Modal
+
+When user clicks any product card: open product detail modal.
+  
+  Modal specs:
+  - Width: 85vw (85% of viewport width)
+  - Height: 85vh (85% of viewport height)
+  - Centered on screen
+  - Background overlay: semi-transparent dark
+  - Close button (X) top-right
+  - ESC key closes modal
+  - Click outside modal closes modal
+  
+  Modal layout (2-column on desktop, single column on mobile):
+  
+  LEFT COLUMN (40% width):
+  - Main product image (large, full width of column)
+  - Thumbnail strip below: up to 4 image thumbnails
+    Click thumbnail → changes main image (smooth transition)
+  
+  RIGHT COLUMN (60% width, scrollable):
+  - Category breadcrumb (Store Name > Category Name)
+  - Product name (large heading)
+  - Certification badges (colored pills — "Halal Certified", "Organic", etc.)
+  - Freshness label (if set — green pill)
+  - Rating (stars + review count)
+  
+  - Pricing section:
+    If no sizes: show Price + discount (strikethrough original if discounted)
+    If has sizes: show size selector buttons, price updates on selection
+    If price-per-kg: show "PKR X.XX / kg" with weight selector
+  
+  - Short description
+  
+  - Add to Cart section:
+    Quantity selector (- / number / +)
+    "Add to Cart" button (full width, primary color)
+    Stock status badge
+  
+  - Tabs (below add to cart):
+    [Product Details] [Ingredients] [Directions]
+    Tab content area (scrollable)
+    
+    Product Details tab: long description / product details text
+    Ingredients tab: ingredients text
+    Directions tab: directions / how to use text
+    
+    (Only show tabs that have content. If only Details filled, show just one tab)
+  
+  Modal is scrollable as a whole if content exceeds 85vh.
+  
+  KEEP existing design system — use same colors, fonts, shadows as rest of site.
+
+5D — Real-time Product Updates on Customer Website
+  
+  Socket.IO /customer namespace listeners:
+  
+  'product_approved' → if currently viewing that store's page:
+    Add product to grid in correct category (smooth fade-in animation)
+  
+  'product_stock_updated' → update stock badge on product card and in open modal
+    If stock → 0: show "Out of Stock", disable add-to-cart
+    If stock → available: show "In Stock", enable add-to-cart
+  
+  'store_availability_changed' → update Open/Closed badge on store card and store header
+  
+  'store_visibility_changed' → if store becomes hidden: show toast "This store is
+    temporarily unavailable" and redirect to /stores after 3 seconds
+  
+  'product_rejected' → product was approved but then rejected by admin:
+    Remove product from view if currently showing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 6 — SOCKET.IO EVENTS MASTER LIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Define ALL these events in server/src/sockets/events.ts
+
+Server → Admin (/admin namespace):
+  'new_store_application'  { storeId, storeName, ownerName, submittedAt }
+  'new_product_pending'    { productId, storeId, storeName, productName }
+  'store_availability_changed' { storeId, isActive }
+  'store_visibility_changed'   { storeId, visible }
+  'product_stock_updated'  { productId, storeId, newQty, productName }
+
+Server → Store (/store namespace):
+  'store_status_changed'   { storeId, status, reason? }
+  'product_approved'       { productId, productName }
+  'product_rejected'       { productId, productName, reason }
+  'admin_store_update'     { storeId, updatedFields }
+
+Server → Customer (/customer namespace):
+  'store_availability_changed' { storeId, isActive, isCurrentlyOpen }
+  'store_visibility_changed'   { storeId, visible }
+  'product_approved'           { productId, storeId, productData }
+  'product_stock_updated'      { productId, storeId, newQty }
+  'store_status_changed'       { storeId, status }
+
+Emit pattern for every mutation:
+  After every DB update that affects other portals, call:
+  emitToRelevantNamespaces(eventName, data)
+  
+  This function determines which namespaces to broadcast to
+  and emits to all connected sockets in those namespaces.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 7 — OPENING HOURS AUTO-STATUS CRON JOB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create/update cron job that runs every minute:
+
+  checkStoreOpenStatus()
+  
+  For each active store (storeStatus = 'approved'):
+    1. Get current day of week and current time
+    2. Look up store's opening hours for today
+    3. Determine if store should be open or closed
+    4. If isCurrentlyOpen has changed:
+       - Update isCurrentlyOpen in DB
+       - Emit 'store_availability_changed' to /customer namespace
+       - This updates all open customer browser tabs in real time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 8 — API ROUTES TO ADD / UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All routes must emit appropriate Socket.IO events after DB mutations.
+
+STORE OWNER routes:
+  POST   /api/store/onboarding/step/:step   Save onboarding step data
+  GET    /api/store/onboarding/status       Get current onboarding progress
+  POST   /api/store/onboarding/submit       Final submission
+  
+  GET    /api/store/settings                Get all store settings
+  PATCH  /api/store/settings/basic          Update basic info
+  PATCH  /api/store/settings/visuals        Update logo/banner/card image
+  PATCH  /api/store/settings/hours          Update opening hours
+  PATCH  /api/store/settings/services       Update services and amenities
+  PATCH  /api/store/settings/premium-fresh  Update premium fresh section
+  
+  GET    /api/store/categories              Get store's categories
+  POST   /api/store/categories              Add category
+  PATCH  /api/store/categories/:id          Edit category
+  DELETE /api/store/categories/:id          Delete category
+  PATCH  /api/store/categories/reorder      Update sort order (accepts array of {id, sortOrder})
+  
+  PATCH  /api/store/toggle-active           Toggle isActiveManual
+  PATCH  /api/store/toggle-visibility       Toggle showOnWebsite
+  
+  GET    /api/store/products                List products with filters
+  POST   /api/store/products                Add new product (sets pending)
+  PUT    /api/store/products/:id            Edit product
+  DELETE /api/store/products/:id            Delete product
+  PATCH  /api/store/products/:id/stock      Quick stock update
+
+ADMIN routes:
+  POST   /api/admin/stores                  Create store directly (auto-approved)
+  PATCH  /api/admin/stores/:id/approve      Approve store
+  PATCH  /api/admin/stores/:id/decline      Decline store (requires reason)
+  PATCH  /api/admin/stores/:id/suspend      Suspend store (requires reason)
+  PATCH  /api/admin/stores/:id/unsuspend    Unsuspend store
+  PATCH  /api/admin/stores/:id/edit         Edit any store field
+  DELETE /api/admin/stores/:id              Soft delete store
+  PATCH  /api/admin/stores/:id/toggle-active      Toggle active
+  PATCH  /api/admin/stores/:id/toggle-visibility  Toggle show on website
+  
+  GET    /api/admin/products/pending        List pending products (all stores)
+  PATCH  /api/admin/products/:id/approve    Approve product
+  PATCH  /api/admin/products/:id/reject     Reject product (requires reason)
+  POST   /api/admin/stores/:id/products     Add product for a store (auto-approved)
+  PUT    /api/admin/stores/:id/products/:pid Edit product for a store
+  
+  GET    /api/admin/categories/:storeId     Get categories for a store
+
+PUBLIC routes (customer website):
+  GET    /api/stores                        List approved+visible stores
+  GET    /api/stores/:slug                  Store detail + categories
+  GET    /api/stores/:slug/products         Products with category filter
+  GET    /api/stores/:slug/categories       Store categories (for nav tabs)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 9 — SHARED COMPONENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Create these reusable components used across portals:
+
+<StoreSetupWizard mode="admin|store-owner" />
+  Used by:
+  - /store-portal/onboarding (store owner)
+  - /admin/stores/new (admin)
+  Exact same 8-step design in both portals.
+
+<ProductForm mode="add|edit" storeId={} adminMode={bool} />
+  Used by:
+  - /store-portal/products (store owner)
+  - /admin/stores/:id/products (admin)
+  Exact same 2-column form design in both portals.
+  adminMode={true} → auto-approve, adminMode={false} → submit for review.
+
+<StoreCard store={} />
+  Used by:
+  - Customer website store listing
+  Real-time updates via useStoreSocket(storeId) custom hook.
+
+<ProductDetailModal product={} isOpen={} onClose={} />
+  Used by:
+  - Customer website (triggered from any product card click)
+  Full-screen 85% modal with image gallery, tabs, add-to-cart.
+
+<StoreStatusToggles storeId={} canEdit={bool} />
+  Used by:
+  - Store portal dashboard
+  - Admin store management table
+  Same two toggles (Active/Closed + Show on Website) in both portals.
+
+<CategoryTabNav categories={[]} activeCategory={} onChange={} />
+  Used by:
+  - Customer website store detail page
+  - Store portal product management (for filtering)
+  Dynamic tabs from database categories.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 10 — IMPLEMENTATION ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Build in this order to avoid breaking existing functionality:
+
+1. Database migrations first (Part 1) — run and verify
+2. Socket.IO events setup (Part 6) — define all events
+3. API routes (Part 8) — build all endpoints
+4. Cron job update (Part 7) — opening hours auto-status
+5. Shared components (Part 9) — build reusable components
+6. Store onboarding wizard (Part 2) — using shared StoreSetupWizard
+7. Store portal enhancements (Part 3) — dashboard, settings, products
+8. Admin portal enhancements (Part 4) — approvals, direct add, toggles
+9. Customer website enhancements (Part 5) — responsive grid, modal, real-time
+10. Testing: test all Socket.IO events end-to-end across all 3 portals
+
+IMPORTANT RULES:
+- Do NOT change existing working functionality unless explicitly stated
+- Do NOT change existing design/colors/typography unless explicitly stated
+- Keep existing component structure — add to it, don't replace it
+- Every new route must be authenticated and role-checked
+- Every DB mutation must emit relevant Socket.IO event
+- Test each part before moving to next
+- Existing store data must be migrated — run UPDATE statements to set
+  default values for new nullable columns
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEED / TEST DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Update seed file to:
+- Set onboardingCompleted = true for all existing stores
+- Set storeStatus = 'approved' for all existing approved stores
+- Create sample categories for each existing store
+  (use their existing product categories to auto-generate)
+- Set categoryId on existing products based on their category field
+- Set default values for all new columns on existing records

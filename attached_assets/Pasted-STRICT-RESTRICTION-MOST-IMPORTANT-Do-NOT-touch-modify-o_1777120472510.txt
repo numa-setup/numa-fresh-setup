@@ -1,0 +1,62 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. Remove Specific Filter Tags — "Halal Stores Near You" Section
+In the "Near You / Halal Stores Near You" section on the client website, remove the following filter tags completely:
+
+Brampton
+Mississauga
+Sargodha
+Toronto
+
+
+2. Remove "Masjid" Label from Store Cards
+On the client website, two store cards currently have a "Masjid" label on them. Remove this label from all store cards across the entire system.
+
+3. Update "How It Works" Section Description
+In the "Simple Process / How It Works" section on the client website, the current description reads:
+"From browse to pickup in under 5 minutes"
+Replace this with a better description that does not make any time promise or guarantee. Write something natural, genuine, and professional — not AI-sounding. Something that simply describes the ease and simplicity of the process without committing to a specific timeframe.
+
+4. Remove "Zabiha" Word System-Wide
+Everywhere in the entire system — every portal, every page, every section — wherever "Zabiha Halal Verified" or any variation of "Zabiha" appears, remove the word "Zabiha" from it. The word "Halal" or "Halal Verified" can remain — only "Zabiha" must be removed throughout.
+
+5. Contact Us Section — Remove Left Side Info & Expand Form
+On the client website homepage, in the "Get In Touch / Contact Us" section:
+
+Remove everything on the left side of the contact form — including Email, Call, Office, "Need help with an order", and any other info blocks there.
+Expand the contact form to full/max width now that the left side is removed.
+
+Also, this "Get In Touch / Contact Us" section should only exist on the homepage. If it appears anywhere else in the system (any other page, tab, or section), remove it from all those other locations. It should exist in one place only.
+
+6. Remove Loyalty Rewards & Membership Plans — System-Wide
+Remove everything related to Loyalty Rewards and Membership Plans from the entire system — every portal, every page. This includes all:
+
+Sections
+Pages
+Tabs
+Buttons
+Links
+Any references or mentions
+
+Nothing related to Loyalty Rewards or Membership Plans should remain anywhere in the system.
+
+7. Fix Opening Hours — Store Detail Page & Admin Panel
+Opening hours are still not working correctly. When a new store is added and opening hours are set, they are not showing in:
+
+The Admin Panel (store approval/detail view)
+The Store Detail Page on the client website
+
+Fix this completely so opening hours are saved properly during store setup and displayed dynamically in both the Admin Panel and the client website store detail page.
+
+8. Fix Scroll Behavior — Entire System
+There is a scroll position bug across the entire system. When navigating from one page to another, many pages open from the middle or bottom instead of the top. Also, when opening a chat, the page scrolls down instead of showing from the beginning.
+Fix the scroll behavior for the entire system with this rule:
+
+Every time any page, section, or chat is navigated to or opened, it must always start from the top.
+No page should ever open mid-scroll or from the bottom.
+Whatever section or chat is being opened should be visible from its very beginning on screen.
+This must be applied globally across all pages, portals, and navigation flows.
+
+
+Again — do not touch anything that is already working. Only implement the eight points listed above.

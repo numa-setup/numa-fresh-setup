@@ -1,0 +1,33 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+Objective: Restructure the Stores Section on the Homepage
+
+1. Replace "Halal Stores Near You" Section (Top Position) — Show All Stores
+The current "Near You / Halal Stores Near You" section at its current position on the homepage should be replaced with a new section that displays all stores available in the system.
+
+Give this section a proper, attractive heading — something like "Discover Our Stores" or "All Halal Stores" or any heading that fits naturally and professionally.
+All active/approved stores must show here in real time.
+The filter tags on this section must work properly — filters should be well-designed and relevant (by category, city, type, etc.).
+Store cards must display correctly with all available info (name, image, tags, status, etc.).
+
+
+2. Add "Near You / Halal Stores Near You" Section Below — Location-Based
+After the "All Stores" section, add the "Near You / Halal Stores Near You" section lower on the homepage.
+
+This section must show stores based on the customer's real-time location.
+The browser should request location permission from the customer.
+Once location is granted, stores nearest to the customer should appear in this section.
+If location permission is denied or not available, show a clean, friendly message such as: "Enable location access to see stores near you."
+If there are no stores near the customer's location, show an appropriate empty state message.
+
+
+3. Filters — Both Sections
+
+The All Stores section must have its own set of well-designed filter tags.
+The Near You section can share the same filter logic or have its own — whichever is cleaner.
+Filters must work in real time — selecting a filter instantly shows only matching stores.
+If there are many filter tags, they must stay in one row with horizontal scroll — no wrapping.
+
+
+Again — do not touch anything that is already working. Only implement the three points listed above.

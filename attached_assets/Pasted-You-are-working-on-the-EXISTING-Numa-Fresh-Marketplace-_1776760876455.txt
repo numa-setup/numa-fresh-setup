@@ -1,0 +1,364 @@
+You are working on the EXISTING "Numa Fresh Marketplace" project.
+Do NOT rebuild anything from scratch.
+Do NOT change any existing working functionality unless explicitly stated.
+Keep all existing designs, colors, and layouts intact.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL INSTRUCTION — READ BEFORE DOING ANYTHING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Work on ONE PART AT A TIME only.
+
+After completing each Part:
+1. Create a Replit Checkpoint with the name format:
+   "Part-X-Complete: [short description]"
+   Example: "Part-1-Complete: Bug Fixes Done"
+2. STOP and do not proceed to the next Part automatically.
+3. Wait for my explicit instruction before starting the next Part.
+   I will say "Part X done, start Part Y" when I am ready.
+
+This is mandatory. Do not skip checkpoints.
+Do not start Part 2 until I confirm Part 1 is working.
+Do not start Part 3 until I confirm Part 2 is working.
+And so on for every Part.
+
+The OpenAI API key is already in the project Secrets/environment
+variables. Use it directly for the AI chatbot in Part 4.
+Do not ask for it or create a new one.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 1 — BUG FIXES (Do these first before any new features)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint after this part: "Part-1-Complete: Bug Fixes"
+
+BUG 1 — Store owner applications not reaching admin approval queue
+
+When a store owner signs up, completes onboarding, and submits their
+store — that store is NOT appearing in the admin pending queue.
+
+Fix this completely:
+- Trace the full flow from store submission to admin display
+- Find where the disconnect is (likely the storeStatus field not
+  being set to 'pending' on submission, or the admin query filtering
+  incorrectly)
+- Ensure that when a store owner submits their store setup, the store
+  record gets storeStatus = 'pending' (or equivalent pending state)
+- Ensure the admin /admin/stores page Pending tab queries for
+  exactly these pending stores and shows them
+- After fix: test by creating a test store owner account, completing
+  onboarding, and verifying the store appears in admin Pending tab
+
+BUG 2 — Admin Store Management tabs showing wrong stores
+
+Currently all stores appear in ALL tabs (All Stores, Pending,
+Approved, Declined, Suspended). Each tab must show ONLY relevant stores.
+
+Fix the admin store management queries:
+- "Pending" tab → ONLY stores with status pending/awaiting approval
+- "Approved" tab → ONLY stores with status approved/active
+- "Declined" tab → ONLY stores with status declined/rejected
+- "Suspended" tab → ONLY stores with status suspended
+- "All Stores" tab → ALL stores regardless of status
+  (add status badge/chip on each row so admin can see status at glance)
+
+BUG 3 — Products not going through approval before showing on website
+
+Currently products added by store owners appear on the customer website
+immediately without admin approval.
+
+Fix this:
+- When a store owner adds/submits a product, set its approval status
+  to pending and isApproved = false
+- Customer website must ONLY show products where isApproved = true
+  (or equivalent approved status field)
+- Admin must approve the product from the approval queue before it
+  shows on the customer website
+- Store owner can see their own pending products in their portal
+  with a "Pending Approval" badge
+- When admin approves: product becomes visible on customer website
+  AND store owner portal shows "Approved" badge
+- When admin rejects: store owner sees "Rejected" badge with reason
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 2 — REMOVE FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint after this part: "Part-2-Complete: Removals Done"
+
+2A — Remove Language Switcher Completely
+- Remove the language switch toggle/button from the entire website
+- Remove Urdu language (ur) from i18next configuration completely
+- Remove all Urdu translation files and imports
+- Keep only English throughout the system
+- Arabic can stay or be removed — your call based on codebase complexity
+- Make sure no broken references remain after removal
+
+2B — Remove from Footer
+- Remove the entire "Marketplace" section from the footer completely
+- Remove "Become a Partner" link from the "For Businesses" footer section
+- After removal: ensure footer layout reflows cleanly with no empty gaps
+
+2C — Remove from My Account section in Footer
+- "Sign In" link in the My Account footer section must be CONDITIONAL:
+  Show "Sign In" ONLY when no user is currently logged in
+  When any user (customer, admin, or store owner) is logged in,
+  hide the "Sign In" link from the footer My Account section
+  Use the existing auth context/state to determine login status
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 3 — ADMIN CMS CONTROLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint after this part: "Part-3-Complete: Admin CMS Controls"
+
+All of the following admin controls must be in the Admin Portal
+under a new section called "Website Management" or "CMS" in the
+admin sidebar navigation.
+
+Create a siteSettings table (or use existing settings mechanism)
+to store all these CMS values. Admin saves → customer website
+reflects changes in real time via Socket.IO or on next page load.
+
+3A — Header Navigation Visibility Toggles
+
+In admin portal under Website Management > Navigation:
+Add toggle switches for each optional nav item:
+- "Halal Meal Planner" tab in header → Show/Hide toggle
+- "Eid Specials" tab in header → Show/Hide toggle
+
+When admin turns a toggle OFF:
+- That tab disappears from the main website header immediately
+When admin turns it ON:
+- That tab reappears in the main website header immediately
+
+These are simple boolean flags stored in site settings.
+Customer website reads these flags and conditionally renders the tabs.
+Use Socket.IO to push the change to all open browser tabs in real time:
+  socket.emit('nav_visibility_changed', { mealPlanner: bool, eidSpecials: bool })
+
+3B — Announcement Badges (Offer Bar)
+
+Currently there is 1 static offer badge at the top of the hero section
+showing "Limited Offer Al-Madina Halal — Get 15% off..."
+
+Replace this with a dynamic sliding badge system:
+- Admin can create between 3 and 5 announcement badges
+- Each badge has: text content, background color picker, link (optional)
+- Badges automatically slide/rotate continuously (carousel/ticker)
+  Slide interval: 4 seconds per badge, smooth CSS transition
+- Admin interface: list of badges with add/edit/delete and drag to reorder
+- Minimum 1 badge required (cannot delete if only 1 remains)
+- Maximum 5 badges
+- Changes reflect on customer website immediately
+
+Store in site settings as a JSON array of badge objects.
+
+3C — Hero Section Featured Stores (3 Image Slots)
+
+Currently the hero section shows 3 static images.
+Replace with 3 admin-configurable store image slots.
+
+Admin interface under Website Management > Hero Section:
+- 3 slots labeled "Hero Image 1", "Hero Image 2", "Hero Image 3"
+- Each slot has:
+  - Image upload (or URL input)
+  - Store selector dropdown (select from approved stores)
+    When a store is selected, the image auto-fills with that store's
+    banner/card image (admin can override with custom upload)
+  - Alt text field
+  - Active toggle (if inactive, slot is hidden)
+- This is described as a PAID feature — add a note in admin UI:
+  "Featured placement — contact store owner to arrange"
+  (No payment processing needed now, just the note)
+
+On customer website:
+- Each hero image is clickable and navigates to that store's page
+- If slot is inactive or no store selected, that slot is not shown
+- Minimum 1 active slot required for hero to display
+
+Changes save to DB and reflect on website on next load
+(no need for real-time socket for this specific feature).
+
+3D — Top Picks / Popular Products Section
+
+This section must ONLY show products that are:
+1. Approved by admin (isApproved = true)
+2. Marked as "Featured" (isFeatured = true)
+3. The store that owns the product must be approved and visible
+
+Admin interface under Website Management > Featured Products:
+- List of all approved products across all stores
+- Toggle "Featured" on/off per product
+- Drag to reorder featured products (controls display order)
+- Section heading text is editable by admin
+  (default: "Top Picks" or "Popular Products")
+- Section visible/hidden toggle
+
+On customer website:
+- This section shows ONLY featured + approved products
+- In the order admin has arranged them
+- If admin hides the section, it does not render at all
+
+3E — Eid Specials Page — Fully Admin Managed
+
+Admin interface under Website Management > Eid Specials:
+All sections of the Eid Specials page (/eid-specials) must be
+editable by admin. Build an editor for each section:
+
+Hero Section editor:
+- Hero background image upload
+- Main heading text
+- Subheading text
+- Hero badge text (e.g. "Limited Time")
+- CTA button text and link
+- Show/Hide toggle for this section
+
+Featured Offers / Cards section editor:
+- Add/edit/delete offer cards
+- Each card: image upload, title, description, discount text,
+  store selector (links to a store), active toggle
+- Drag to reorder cards
+
+Content Sections editor:
+- Any text blocks or content sections on the page
+- Rich text editor (or simple textarea) per section
+- Section title, body text, image (optional)
+
+Page visibility:
+- "Page Active" toggle — if off, /eid-specials redirects to homepage
+- Auto-schedule: admin can set start date and end date for the page
+  to automatically become active/inactive
+
+3F — Footer Certificates Section
+
+Admin interface under Website Management > Footer:
+- Currently 3 certificate logos are hardcoded
+- Allow admin to manage these: upload image, add link, add alt text
+- Admin can add up to 6 certificates, delete, reorder
+- Changes reflect on website on next load
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 4 — AI CHATBOT & HELP CENTER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint after this part: "Part-4-Complete: AI Chatbot Live"
+
+The OpenAI API key is already in project Secrets. Use it directly.
+Do not ask for a new key. Do not add a placeholder.
+
+4A — Floating AI Chatbot Widget on Customer Website
+
+Add a floating chat button fixed to the bottom-right corner of the
+customer website on ALL pages. It should always be visible.
+
+Button design:
+- Circle button, brand primary color (#3FB196)
+- Chat bubble icon
+- Pulsing animation to draw attention (subtle, not annoying)
+- On hover: show tooltip "Need help? Ask us!"
+
+When clicked: chat panel slides up from bottom-right (like WhatsApp Web)
+- Panel size: 380px wide, 520px tall (on mobile: 100% width, 60% height)
+- Panel header: "Numa Fresh Assistant" + brand logo + minimize button
+- Chat message area (scrollable)
+- Input field at bottom + send button
+- Greeting message on open: "Hello! I'm here to help you with
+  anything about Numa Fresh Marketplace. Ask me about stores,
+  products, orders, or anything else!"
+
+AI Integration:
+Use the existing OpenAI API key already in environment variables.
+Send messages to OpenAI with this system prompt:
+
+"You are a helpful assistant for Numa Fresh Marketplace, a halal
+grocery delivery and pickup platform. Help customers with questions
+about: browsing stores, placing orders, order tracking, pickup and
+delivery options, the loyalty points program, the meal planner,
+Eid specials, and general platform usage. Be friendly, concise,
+and always refer users to the relevant section of the website.
+Do not answer questions unrelated to Numa Fresh."
+
+Chat features:
+- Messages persist during the browser session (cleared on page refresh)
+- Show typing indicator (animated dots) while waiting for AI response
+- Timestamp on each message
+- Error handling: if API fails, show "Sorry, I'm having trouble
+  right now. Please try again or contact support."
+
+4B — Help Center Link in Footer
+
+The existing "Help Center" link in the Support section of the footer:
+- When clicked: opens the AI chatbot panel (same widget from 4A)
+- If chatbot is already open: just focus the input field
+- Do not navigate to a separate page
+
+4C — Contact Us Page & Header Link
+
+Create a Contact Us page at /contact:
+
+Page sections:
+- Hero: "Get in Touch" heading with subtext
+- Contact form:
+  Name (required)
+  Email (required)
+  Phone (optional)
+  Subject dropdown: Order Issue / Store Inquiry / Partnership /
+                    Technical Problem / General Question / Other
+  Message (required, textarea)
+  Submit button
+  On submit: save to DB as a support ticket, send email notification
+  to admin, show success message to user
+- Contact Info cards (clickable):
+  Email card: shows email address, clicking opens mailto: link
+  Phone card: shows phone number, clicking opens tel: link on mobile
+  Address card: shows address, clicking opens Google Maps link
+  (admin configures these values in Website Management > Contact Info)
+- Business hours (from admin settings)
+
+Add "Contact Us" link to the main website header navigation.
+Place it near the right side of the header nav links.
+
+Also make the footer contact info (email, phone, address) clickable:
+- Email → opens mailto: link
+- Phone → opens tel: link
+- Address → opens Google Maps link in new tab
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PART 5 — REAL-TIME SYNC VERIFICATION & CLEANUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint after this part: "Part-5-Complete: Full Sync Verified"
+
+After all parts above are complete, do a full sync audit:
+
+5A — Verify these real-time flows work end-to-end:
+- Admin approves store → store owner portal shows approved status
+  without page refresh
+- Admin approves product → product appears on customer website
+  without page refresh
+- Admin toggles nav visibility (Meal Planner / Eid Specials) →
+  customer website header updates
+- Store owner toggles store active/closed → customer website
+  store card badge updates
+- Admin suspends store → store disappears from customer website
+
+5B — Verify these data flows:
+- New store owner completes onboarding → store appears in admin
+  Pending tab (Bug 1 fix verification)
+- Store tabs (Pending/Approved/Declined/Suspended) each show
+  only correct stores (Bug 2 fix verification)
+- New product from store owner → not visible on website until
+  admin approves (Bug 3 fix verification)
+
+5C — Fix any broken Socket.IO events found during verification.
+     Ensure every mutation emits to correct namespaces.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GENERAL RULES FOR ALL PARTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Work on ONE PART AT A TIME. Stop after each Part and wait for confirmation.
+- Create a named Replit Checkpoint after every Part completes.
+- Preserve ALL existing working features and designs.
+- Do not change colors, typography, or layout of existing pages.
+- New admin CMS fields: handle gracefully if empty
+  (show defaults, do not crash if value is null).
+- All new admin settings pages must match existing admin portal design.
+- All form submissions need proper validation and error messages.
+- The OpenAI API key is already in Secrets — use it, do not replace it.
+- After ALL parts complete: run a full smoke test across all 3 portals.

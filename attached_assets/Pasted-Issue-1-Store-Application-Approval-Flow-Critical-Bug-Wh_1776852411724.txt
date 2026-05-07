@@ -1,0 +1,25 @@
+Issue 1 — Store Application Approval Flow (Critical Bug)
+When a store owner submits their store setup application from the Store Owner Portal, it should appear in the Admin Portal under the "Store Management" tab for approval. Currently it is arriving in draft status, and when clicking on that store to view details, this message is showing:
+"Application not yet submitted — The owner has saved partial setup data but has not clicked Submit for Review. No approval action is available until they submit."
+However, the application was already submitted from the Store Owner Portal. So please investigate:
+
+Is the bug on the Store Owner Portal side — meaning the submit action is not properly marking the application as submitted?
+Or is the bug on the Admin Portal side — meaning it is not correctly fetching or reading the submitted status?
+
+Find the root cause and fix it completely.
+
+Issue 2 — Prevent Multiple Store Setups Per Account
+When a store owner has already set up a store, they should not be able to create another new store from the same account.
+
+If the store is approved by admin → show a Store Setup Edit option instead.
+If the store is pending approval → show a professional message such as:
+"Application submitted. Waiting for admin approval."
+No new store setup should be accessible until the current one is resolved.
+
+
+Issue 3 — "Store Open / Store Closed" Toggle Not Persisting
+In the Store Owner Portal, there is a toggle for "Store Open" / "Store Closed". The toggle is being set to Open, but every time the page is refreshed, it resets back to Closed. This state must be saved and persisted so it does not reset on refresh.
+
+Issue 4 — Store Owner Portal Data Persistence
+All data entered during store setup (store name, description, logo, banner, contact info, etc.) must be saved and visible in the Store Owner Portal settings after account creation.
+Additionally, all other data including orders, chats, inventory, products, and stats must also persist correctly. This will be real-time data and must remain saved and accessible at all times.

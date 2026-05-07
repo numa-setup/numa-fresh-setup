@@ -1,0 +1,56 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. "Halal Stores Near You" Section — Filter Tags
+Add filter tags at the top of the "Halal Stores Near You" section on the homepage. These filters should work the same way as the product filter tags already present on the store detail page — same style, same tag format.
+
+Filters should appear as tags at the top of this section.
+When a filter tag is selected, stores should be filtered in real time.
+If there are many filter tags, they should all stay in one row with horizontal scroll behavior — no wrapping to a second row.
+
+
+2. Product Detail Page — Related/Similar Products
+On the product detail page, show related or similar products below the main product. These can be from any brand or store — relevance is based on product type or category, not limited to the same store.
+
+3. Product Detail Page — Full Product Information & Admin/Store Owner Access
+The product detail page should display complete product details including:
+
+Full description
+Usage instructions
+Ingredients
+Any additional relevant information about the product
+
+Both the Store Owner and the Admin must have full access to add and edit all of these details when creating or editing a product.
+
+4. Product Detail Page — Multiple Images with Slideshow, Hover Zoom & Upload Option
+
+Each product should support 3 to 4 images.
+When adding a new product (from Store Owner Portal or Admin Panel), there should be an option to add 3 to 4 images — but at least 1 image is mandatory.
+If multiple images are added, they should auto-slide on the product detail page.
+When a user hovers over an image, it should zoom in.
+
+
+5. Product Detail Page — "Add Note for Shopper" Option
+Add an "Add Note for Shopper" option on the product detail page. This note should also be visible to the store owner in their portal when viewing the order.
+
+6. Product Detail Page — "Add to Save List" Option
+Add an "Add to Save List" (wishlist/saved items) button on the product detail page so customers can save products for later.
+
+7. Cart — "Replace with Best Match" Option
+In the cart, if a product is:
+
+Out of stock
+Added by mistake
+Not suitable for the customer
+Or any other issue
+
+The customer should have a "Replace with Best Match" option. Clicking it should show a list of relevant/similar products to replace that item with.
+
+8. Cart Page — Similar Products Section
+On the cart page, display a "Similar Products" section showing products related to what is already in the cart — so customers can discover alternatives or additions easily.
+
+9. Reorder — One-Click Reorder of Multiple Products
+If a customer has previously ordered multiple products, they should have a "Reorder" option that adds all of those products back to the cart in one single click.
+This Reorder option should appear wherever previous orders are listed (order history page or relevant section).
+
+Again — do not touch anything that is already working. Only implement the nine points listed above.

@@ -1,0 +1,30 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+Issue 1 — Opening Hours: Fix Completely (Critical)
+When a store owner sets up their store and selects opening hours using the toggles, whichever days are toggled ON along with their timings must be:
+
+Correctly saved in the database at the time of store setup.
+Properly displayed in the Admin Panel when the admin views that store's details or approval page.
+Properly displayed on the Store Detail Page on the client website — dynamically, showing only the days that are open with their correct timings.
+
+Trace the full data flow from store setup → database → admin view → client website and find exactly where the opening hours data is being lost or not passed through, then fix it completely.
+
+Issue 2 — Full Store Info Edit Access for Admin & Store Owner
+Currently there is no proper way to edit store information after it has been submitted. This must be fixed for both portals:
+Store Owner Portal:
+
+The store owner must be able to edit all information they provided during store setup — from the very first field to the last.
+This includes: store name, description, logo, banner, card image, tagline, branch, Google map location, services, amenities, minimum order, convenience fee, prep time, opening hours, Premium Fresh Cuts section content, images, and every other field.
+This edit option must be accessible from within the Store Owner Portal at any time.
+
+Admin Panel:
+
+The admin must also be able to edit all store information for any store in the system.
+Full edit access to every field of every store — same fields as above.
+This must be accessible from the Store Management section in the Admin Panel.
+
+Both edit forms must be pre-filled with the existing saved data so the owner or admin only changes what needs to be updated — they should not have to re-enter everything from scratch.
+After saving edits, all changes must reflect immediately and dynamically on the Store Detail Page on the client website.
+
+Again — do not touch anything that is already working. Only implement the two points listed above.

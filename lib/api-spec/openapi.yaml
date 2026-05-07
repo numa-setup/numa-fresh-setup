@@ -1,0 +1,2122 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 1.0.0
+  description: Halal Grocery Marketplace API
+
+servers:
+  - url: /api
+    description: Base API path
+
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: stores
+    description: Store operations
+  - name: products
+    description: Product operations
+  - name: orders
+    description: Order operations
+  - name: users
+    description: User operations
+  - name: analytics
+    description: Analytics operations
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # AUTH ROUTES
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenBody"
+      responses:
+        "200":
+          description: New tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request password reset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: Reset email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/verify-email/{token}:
+    post:
+      operationId: verifyEmail
+      tags: [auth]
+      summary: Verify email with token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  # STORES
+  /stores:
+    get:
+      operationId: listStores
+      tags: [stores]
+      summary: List all active stores
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: List of stores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreListResponse"
+
+  /stores/featured:
+    get:
+      operationId: getFeaturedStores
+      tags: [stores]
+      summary: Get featured/top-rated stores
+      responses:
+        "200":
+          description: Featured stores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Store"
+
+  /stores/{storeSlug}:
+    get:
+      operationId: getStore
+      tags: [stores]
+      summary: Get store by slug
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Store details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreDetail"
+        "404":
+          description: Store not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /stores/{storeSlug}/products:
+    get:
+      operationId: getStoreProducts
+      tags: [stores]
+      summary: Get products for a store
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 40
+      responses:
+        "200":
+          description: Store products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+
+  /stores/{storeSlug}/reviews:
+    get:
+      operationId: getStoreReviews
+      tags: [stores]
+      summary: Get reviews for a store
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Store reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewListResponse"
+
+  /stores/{storeSlug}/pickup-slots:
+    get:
+      operationId: getPickupSlots
+      tags: [stores]
+      summary: Get available pickup slots for a store
+      parameters:
+        - name: storeSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Available pickup slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PickupSlot"
+
+  # PRODUCTS
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List/search products across all stores
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+        - name: isFreshMeat
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 40
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+
+  /products/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [products]
+      summary: Get featured products for homepage
+      responses:
+        "200":
+          description: Featured products by category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeaturedProductsResponse"
+
+  /products/{productSlug}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product detail by slug
+      parameters:
+        - name: productSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ORDERS
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List customer's orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a new order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/cancel:
+    post:
+      operationId: cancelOrder
+      tags: [orders]
+      summary: Cancel an order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelOrderBody"
+      responses:
+        "200":
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # STORE PORTAL
+  /store-portal/orders:
+    get:
+      operationId: getStoreOrders
+      tags: [orders]
+      summary: Get store's incoming orders (store owner/staff)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Store orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+
+  /store-portal/orders/{orderId}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status (store)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /store-portal/products:
+    get:
+      operationId: getStorePortalProducts
+      tags: [products]
+      summary: Get store's products for management
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Store products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a new product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /store-portal/products/{productId}:
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductBody"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /store-portal/analytics:
+    get:
+      operationId: getStoreAnalytics
+      tags: [analytics]
+      summary: Get store analytics summary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [7d, 30d, 90d]
+            default: 30d
+      responses:
+        "200":
+          description: Store analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreAnalyticsSummary"
+
+  /store-portal/dashboard:
+    get:
+      operationId: getStoreDashboard
+      tags: [analytics]
+      summary: Get store dashboard summary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreDashboard"
+
+  # USER ACCOUNT
+  /users/profile:
+    get:
+      operationId: getUserProfile
+      tags: [users]
+      summary: Get user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateUserProfile
+      tags: [users]
+      summary: Update user profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/addresses:
+    get:
+      operationId: getUserAddresses
+      tags: [users]
+      summary: Get user's saved addresses
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Address"
+    post:
+      operationId: createAddress
+      tags: [users]
+      summary: Add a new address
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAddressBody"
+      responses:
+        "201":
+          description: Address created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+
+  /users/loyalty:
+    get:
+      operationId: getLoyaltyInfo
+      tags: [users]
+      summary: Get user loyalty points and transactions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Loyalty info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoyaltyInfo"
+
+  # PLATFORM STATS (wow endpoint)
+  /platform/stats:
+    get:
+      operationId: getPlatformStats
+      tags: [analytics]
+      summary: Get platform-wide public stats
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
+  # PROMO CODES
+  /promo/validate:
+    post:
+      operationId: validatePromoCode
+      tags: [orders]
+      summary: Validate a promo code
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ValidatePromoBody"
+      responses:
+        "200":
+          description: Promo code details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromoCodeResult"
+
+  # ADMIN
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [analytics]
+      summary: Get admin dashboard summary
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Admin dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  /admin/stores:
+    get:
+      operationId: adminListStores
+      tags: [stores]
+      summary: Admin - list all stores
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: All stores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoreListResponse"
+
+  /admin/stores/{storeId}/approve:
+    patch:
+      operationId: approveStore
+      tags: [stores]
+      summary: Admin - approve a store
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Store approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Store"
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [users]
+      summary: Admin - list all users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+
+  /admin/orders:
+    get:
+      operationId: adminListOrders
+      tags: [orders]
+      summary: Admin - list all orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: storeId
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: All orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+      required:
+        - error
+        - message
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      required:
+        - accessToken
+        - refreshToken
+
+    # AUTH SCHEMAS
+    SignupBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+          enum: [CUSTOMER, STORE_OWNER]
+          default: CUSTOMER
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    RefreshTokenBody:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+
+    ForgotPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      required:
+        - user
+        - accessToken
+        - refreshToken
+
+    # USER SCHEMAS
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [CUSTOMER, STORE_OWNER, STORE_STAFF, ADMIN]
+        isVerified:
+          type: boolean
+        loyaltyPoints:
+          type: integer
+        preferredLanguage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - role
+        - isVerified
+        - loyaltyPoints
+        - preferredLanguage
+        - createdAt
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        preferredLanguage:
+          type: string
+
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - users
+        - total
+        - page
+        - totalPages
+
+    # ADDRESS SCHEMAS
+    Address:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        fullName:
+          type: string
+        phone:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        province:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        isDefault:
+          type: boolean
+        instructions:
+          type: string
+          nullable: true
+      required:
+        - id
+        - label
+        - fullName
+        - phone
+        - line1
+        - city
+        - province
+        - postalCode
+        - country
+        - isDefault
+
+    CreateAddressBody:
+      type: object
+      properties:
+        label:
+          type: string
+          default: Home
+        fullName:
+          type: string
+        phone:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+          default: CA
+        isDefault:
+          type: boolean
+        instructions:
+          type: string
+      required:
+        - fullName
+        - phone
+        - line1
+        - city
+        - province
+        - postalCode
+
+    # STORE SCHEMAS
+    Store:
+      type: object
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        logo:
+          type: string
+          nullable: true
+        banner:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        province:
+          type: string
+        postalCode:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        isHalalCertified:
+          type: boolean
+        halalCertNumber:
+          type: string
+          nullable: true
+        rating:
+          type: number
+        totalRatings:
+          type: integer
+        avgPrepTimeMinutes:
+          type: integer
+        deliveryAvailable:
+          type: boolean
+        pickupAvailable:
+          type: boolean
+        curbsideAvailable:
+          type: boolean
+        minOrderAmount:
+          type: number
+        convenienceFee:
+          type: number
+        openingHoursJson:
+          type: object
+        isMasjidAffiliated:
+          type: boolean
+        masjidName:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        isApproved:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - slug
+        - name
+        - phone
+        - address
+        - city
+        - province
+        - postalCode
+        - lat
+        - lng
+        - isHalalCertified
+        - rating
+        - totalRatings
+        - avgPrepTimeMinutes
+        - deliveryAvailable
+        - pickupAvailable
+        - curbsideAvailable
+        - minOrderAmount
+        - convenienceFee
+        - openingHoursJson
+        - isMasjidAffiliated
+        - isActive
+        - isApproved
+        - createdAt
+
+    StoreDetail:
+      allOf:
+        - $ref: "#/components/schemas/Store"
+        - type: object
+          properties:
+            productsCount:
+              type: integer
+            recentReviews:
+              type: array
+              items:
+                $ref: "#/components/schemas/Review"
+
+    StoreListResponse:
+      type: object
+      properties:
+        stores:
+          type: array
+          items:
+            $ref: "#/components/schemas/Store"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - stores
+        - total
+        - page
+        - totalPages
+
+    # PRODUCT SCHEMAS
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        storeId:
+          type: string
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        productType:
+          type: string
+          enum: [PACKAGED, FRESH_MEAT, PRODUCE, FROZEN, SPICES, BAKERY, DAIRY, BEVERAGES]
+        category:
+          type: string
+        subcategory:
+          type: string
+          nullable: true
+        images:
+          type: array
+          items:
+            type: string
+        price:
+          type: number
+        comparePrice:
+          type: number
+          nullable: true
+        unit:
+          type: string
+        stockQty:
+          type: number
+        isActive:
+          type: boolean
+        isFeatured:
+          type: boolean
+        isHalalCertified:
+          type: boolean
+        isFreshMeat:
+          type: boolean
+        meatAnimalType:
+          type: string
+          nullable: true
+        estimatedWeightKg:
+          type: number
+          nullable: true
+        pricePerKg:
+          type: number
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        freshnessLabel:
+          type: string
+          nullable: true
+        store:
+          $ref: "#/components/schemas/Store"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - storeId
+        - slug
+        - name
+        - productType
+        - category
+        - images
+        - price
+        - unit
+        - stockQty
+        - isActive
+        - isFeatured
+        - isHalalCertified
+        - isFreshMeat
+        - tags
+        - createdAt
+
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - products
+        - total
+        - page
+        - totalPages
+
+    FeaturedProductsResponse:
+      type: object
+      properties:
+        freshMeat:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        produce:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        spices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        packaged:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        eidSpecials:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+      required:
+        - freshMeat
+        - produce
+        - spices
+        - packaged
+        - eidSpecials
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        productType:
+          type: string
+          enum: [PACKAGED, FRESH_MEAT, PRODUCE, FROZEN, SPICES, BAKERY, DAIRY, BEVERAGES]
+        category:
+          type: string
+        subcategory:
+          type: string
+        images:
+          type: array
+          items:
+            type: string
+        price:
+          type: number
+        comparePrice:
+          type: number
+        unit:
+          type: string
+        stockQty:
+          type: number
+        isFreshMeat:
+          type: boolean
+        meatAnimalType:
+          type: string
+        pricePerKg:
+          type: number
+        tags:
+          type: array
+          items:
+            type: string
+        isFeatured:
+          type: boolean
+      required:
+        - name
+        - productType
+        - category
+        - price
+        - unit
+        - stockQty
+
+    UpdateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        comparePrice:
+          type: number
+        stockQty:
+          type: number
+        isActive:
+          type: boolean
+        isFeatured:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+
+    # ORDER SCHEMAS
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        name:
+          type: string
+        productType:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+        unitPrice:
+          type: number
+        totalPrice:
+          type: number
+        isFreshMeat:
+          type: boolean
+        meatCutType:
+          type: string
+          nullable: true
+        meatCutInstructions:
+          type: string
+          nullable: true
+        itemStatus:
+          type: string
+        staffNote:
+          type: string
+          nullable: true
+      required:
+        - id
+        - productId
+        - name
+        - productType
+        - quantity
+        - unit
+        - unitPrice
+        - totalPrice
+        - isFreshMeat
+        - itemStatus
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        customerId:
+          type: string
+        storeId:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, STORE_CONFIRMED, IN_PREPARATION, REPLACEMENT_HANDLING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, COMPLETED, CANCELLED, REFUNDED]
+        orderType:
+          type: string
+          enum: [EXPRESS_PICKUP, CURBSIDE_PICKUP, STORE_DELIVERY]
+        subtotal:
+          type: number
+        convenienceFee:
+          type: number
+        deliveryFee:
+          type: number
+        discount:
+          type: number
+        tip:
+          type: number
+        estimatedTotal:
+          type: number
+        finalTotal:
+          type: number
+          nullable: true
+        promoCode:
+          type: string
+          nullable: true
+        loyaltyPointsUsed:
+          type: integer
+        paymentStatus:
+          type: string
+        pickupQrCode:
+          type: string
+          nullable: true
+        specialInstructions:
+          type: string
+          nullable: true
+        estimatedReadyAt:
+          type: string
+          format: date-time
+          nullable: true
+        readyAt:
+          type: string
+          format: date-time
+          nullable: true
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        cancelReason:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        store:
+          $ref: "#/components/schemas/Store"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderNumber
+        - customerId
+        - storeId
+        - status
+        - orderType
+        - subtotal
+        - convenienceFee
+        - deliveryFee
+        - discount
+        - tip
+        - estimatedTotal
+        - loyaltyPointsUsed
+        - paymentStatus
+        - items
+        - createdAt
+
+    OrderListResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - orders
+        - total
+        - page
+        - totalPages
+
+    CreateOrderBody:
+      type: object
+      properties:
+        storeId:
+          type: string
+        orderType:
+          type: string
+          enum: [EXPRESS_PICKUP, CURBSIDE_PICKUP, STORE_DELIVERY]
+        addressId:
+          type: string
+        pickupSlotId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+        promoCode:
+          type: string
+        loyaltyPointsToUse:
+          type: integer
+        tip:
+          type: number
+        specialInstructions:
+          type: string
+        vehicleInfo:
+          type: object
+      required:
+        - storeId
+        - orderType
+        - items
+
+    OrderItemInput:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: number
+        meatCutType:
+          type: string
+        meatCutInstructions:
+          type: string
+        meatMarination:
+          type: string
+        substitutionPref:
+          type: string
+          enum: [NO_REPLACEMENT, REPLACE_SIMILAR, CHOOSE_SPECIFIC, CONTACT_FIRST]
+      required:
+        - productId
+        - quantity
+
+    CancelOrderBody:
+      type: object
+      properties:
+        reason:
+          type: string
+      required:
+        - reason
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [STORE_CONFIRMED, IN_PREPARATION, REPLACEMENT_HANDLING, READY_FOR_PICKUP, OUT_FOR_DELIVERY, COMPLETED, CANCELLED]
+        note:
+          type: string
+        estimatedReadyAt:
+          type: string
+          format: date-time
+      required:
+        - status
+
+    # REVIEW SCHEMAS
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        storeId:
+          type: string
+        orderId:
+          type: string
+        rating:
+          type: integer
+        comment:
+          type: string
+          nullable: true
+        reply:
+          type: string
+          nullable: true
+        isPublic:
+          type: boolean
+        user:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            avatar:
+              type: string
+              nullable: true
+          required:
+            - firstName
+            - lastName
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - storeId
+        - orderId
+        - rating
+        - isPublic
+        - createdAt
+
+    ReviewListResponse:
+      type: object
+      properties:
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        total:
+          type: integer
+        averageRating:
+          type: number
+        ratingBreakdown:
+          type: object
+          properties:
+            "1":
+              type: integer
+            "2":
+              type: integer
+            "3":
+              type: integer
+            "4":
+              type: integer
+            "5":
+              type: integer
+          required: ["1", "2", "3", "4", "5"]
+      required:
+        - reviews
+        - total
+        - averageRating
+        - ratingBreakdown
+
+    # PICKUP SLOT
+    PickupSlot:
+      type: object
+      properties:
+        id:
+          type: string
+        storeId:
+          type: string
+        date:
+          type: string
+          format: date-time
+        startTime:
+          type: string
+        endTime:
+          type: string
+        maxOrders:
+          type: integer
+        bookedOrders:
+          type: integer
+        isAvailable:
+          type: boolean
+        spotsLeft:
+          type: integer
+      required:
+        - id
+        - storeId
+        - date
+        - startTime
+        - endTime
+        - maxOrders
+        - bookedOrders
+        - isAvailable
+        - spotsLeft
+
+    # LOYALTY
+    LoyaltyInfo:
+      type: object
+      properties:
+        points:
+          type: integer
+        pointsValue:
+          type: number
+        tier:
+          type: string
+        nextTierPoints:
+          type: integer
+          nullable: true
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/LoyaltyTransaction"
+      required:
+        - points
+        - pointsValue
+        - tier
+        - transactions
+
+    LoyaltyTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+        points:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - points
+        - type
+        - description
+        - createdAt
+
+    # PROMO CODE
+    ValidatePromoBody:
+      type: object
+      properties:
+        code:
+          type: string
+        orderTotal:
+          type: number
+        storeId:
+          type: string
+      required:
+        - code
+        - orderTotal
+
+    PromoCodeResult:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        discountType:
+          type: string
+          nullable: true
+        discountValue:
+          type: number
+          nullable: true
+        discountAmount:
+          type: number
+          nullable: true
+        message:
+          type: string
+      required:
+        - valid
+        - message
+
+    # ANALYTICS SCHEMAS
+    StoreAnalyticsSummary:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+        totalOrders:
+          type: integer
+        avgOrderValue:
+          type: number
+        totalCommission:
+          type: number
+        avgPrepTime:
+          type: integer
+        topProducts:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              soldCount:
+                type: integer
+              revenue:
+                type: number
+            required:
+              - name
+              - soldCount
+              - revenue
+        dailyRevenue:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              revenue:
+                type: number
+              orders:
+                type: integer
+            required:
+              - date
+              - revenue
+              - orders
+        orderStatusBreakdown:
+          type: object
+      required:
+        - totalRevenue
+        - totalOrders
+        - avgOrderValue
+        - totalCommission
+        - avgPrepTime
+        - topProducts
+        - dailyRevenue
+        - orderStatusBreakdown
+
+    StoreDashboard:
+      type: object
+      properties:
+        todayOrders:
+          type: integer
+        pendingOrders:
+          type: integer
+        todayRevenue:
+          type: number
+        activeProducts:
+          type: integer
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        lowStockProducts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+      required:
+        - todayOrders
+        - pendingOrders
+        - todayRevenue
+        - activeProducts
+        - recentOrders
+        - lowStockProducts
+
+    AdminDashboard:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalStores:
+          type: integer
+        totalOrders:
+          type: integer
+        platformRevenue:
+          type: number
+        pendingStoreApprovals:
+          type: integer
+        openSupportTickets:
+          type: integer
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        revenueByDay:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              revenue:
+                type: number
+              orders:
+                type: integer
+            required:
+              - date
+              - revenue
+              - orders
+      required:
+        - totalUsers
+        - totalStores
+        - totalOrders
+        - platformRevenue
+        - pendingStoreApprovals
+        - openSupportTickets
+        - recentOrders
+        - revenueByDay
+
+    PlatformStats:
+      type: object
+      properties:
+        totalStores:
+          type: integer
+        totalProducts:
+          type: integer
+        citiesServed:
+          type: integer
+        ordersCompleted:
+          type: integer
+        halalCertifiedStores:
+          type: integer
+      required:
+        - totalStores
+        - totalProducts
+        - citiesServed
+        - ordersCompleted
+        - halalCertifiedStores

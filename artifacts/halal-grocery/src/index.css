@@ -1,0 +1,815 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+}
+
+/* ===========================
+   HALAL GROCERY DESIGN SYSTEM
+   Primary: #3FB196 (teal-green)
+   Gold: #D4AF37 (premium)
+   =========================== */
+
+:root {
+  /* Halal Grocery Brand Colors */
+  --hg-primary: #3FB196;
+  --hg-primary-dark: #2A7D6A;
+  --hg-primary-darker: #1E5C4D;
+  --hg-primary-light: #6FCBB3;
+  --hg-primary-pale: #E8F7F3;
+  --hg-gold: #D4AF37;
+  --hg-gold-light: #F5E6A3;
+  --hg-warm-white: #FAFAF8;
+  --hg-surface: #F4F7F6;
+  --hg-dark-text: #1A2E29;
+  --hg-muted-text: #5A7A72;
+
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
+
+  /* Background: Warm White #FAFAF8 -> HSL 60 20% 98% */
+  --background: 60 20% 98%;
+  /* Foreground: Dark Text #1A2E29 -> HSL 168 30% 14% */
+  --foreground: 168 30% 14%;
+
+  /* Border: #D4E8E3 -> HSL 168 25% 86% */
+  --border: 168 25% 86%;
+
+  /* Card: White with slight warm tint -> HSL 60 15% 100% */
+  --card: 0 0% 100%;
+  --card-foreground: 168 30% 14%;
+  --card-border: 168 25% 90%;
+
+  /* Sidebar: Surface #F4F7F6 -> HSL 168 15% 96% */
+  --sidebar: 168 15% 96%;
+  --sidebar-foreground: 168 30% 14%;
+  --sidebar-border: 168 25% 88%;
+  --sidebar-primary: 163 44% 47%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 168 15% 92%;
+  --sidebar-accent-foreground: 168 30% 14%;
+  --sidebar-ring: 163 44% 47%;
+
+  /* Popover */
+  --popover: 0 0% 100%;
+  --popover-foreground: 168 30% 14%;
+  --popover-border: 168 25% 88%;
+
+  /* Primary: #3FB196 -> HSL 163 44% 47% */
+  --primary: 163 44% 47%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Pale primary #E8F7F3 -> HSL 163 40% 94% */
+  --secondary: 163 40% 94%;
+  --secondary-foreground: 163 44% 30%;
+
+  /* Muted: Surface #F4F7F6 -> HSL 168 15% 96% */
+  --muted: 168 15% 95%;
+  --muted-foreground: 168 20% 43%;
+
+  /* Accent: Gold #D4AF37 -> HSL 44 65% 52% */
+  --accent: 44 65% 52%;
+  --accent-foreground: 44 80% 10%;
+
+  /* Destructive: Error red #E53935 */
+  --destructive: 1 80% 56%;
+  --destructive-foreground: 0 0% 100%;
+
+  --input: 168 25% 86%;
+  --ring: 163 44% 47%;
+
+  /* Chart colors */
+  --chart-1: 163 44% 47%;
+  --chart-2: 44 65% 52%;
+  --chart-3: 168 30% 35%;
+  --chart-4: 163 40% 65%;
+  --chart-5: 1 80% 56%;
+
+  /* Typography */
+  --app-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --app-font-serif: 'Playfair Display', Georgia, serif;
+  --app-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, monospace;
+
+  /* Border radius */
+  --radius: 0.75rem; /* 12px */
+
+  /* Shadows */
+  --shadow-2xs: 0 1px 3px rgba(63,177,150,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-xs: 0 1px 3px rgba(63,177,150,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 4px 16px rgba(63,177,150,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow: 0 4px 16px rgba(63,177,150,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(63,177,150,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(63,177,150,0.16), 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-xl: 0 20px 60px rgba(63,177,150,0.20), 0 8px 24px rgba(0,0,0,0.10);
+  --shadow-2xl: 0 20px 60px rgba(63,177,150,0.20), 0 8px 24px rgba(0,0,0,0.10);
+
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+
+  /* Auto-borders */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+
+  --background: 168 30% 8%;
+  --foreground: 163 20% 92%;
+  --border: 168 20% 20%;
+  --card: 168 25% 11%;
+  --card-foreground: 163 20% 92%;
+  --card-border: 168 20% 18%;
+  --sidebar: 168 30% 10%;
+  --sidebar-foreground: 163 20% 88%;
+  --sidebar-border: 168 20% 18%;
+  --sidebar-primary: 163 44% 47%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 168 25% 16%;
+  --sidebar-accent-foreground: 163 20% 88%;
+  --sidebar-ring: 163 44% 47%;
+  --popover: 168 25% 11%;
+  --popover-foreground: 163 20% 92%;
+  --popover-border: 168 20% 18%;
+  --primary: 163 44% 47%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 168 25% 16%;
+  --secondary-foreground: 163 40% 80%;
+  --muted: 168 25% 16%;
+  --muted-foreground: 168 20% 55%;
+  --accent: 44 65% 52%;
+  --accent-foreground: 44 80% 10%;
+  --destructive: 1 80% 56%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 168 20% 20%;
+  --ring: 163 44% 47%;
+  --chart-1: 163 44% 55%;
+  --chart-2: 44 65% 60%;
+  --chart-3: 168 30% 55%;
+  --chart-4: 163 40% 70%;
+  --chart-5: 1 80% 60%;
+
+  --shadow-2xs: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-xs: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,0.6);
+  --shadow-2xl: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+/* Utility: Halal Grocery gradient backgrounds */
+/* Fix container horizontal padding — Tailwind v4 container has no padding by default */
+@layer base {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+}
+
+@layer utilities {
+  /* Hide horizontal scrollbar on filter/category tag rows while keeping the
+     ability to scroll. Used by the home stores filter (Round 10 / Fix #1)
+     and the store-detail product category bar. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hg-gradient-primary {
+    background: linear-gradient(135deg, #52C9A8 0%, #3FB196 45%, #2A8B73 100%);
+    box-shadow: 0 2px 12px rgba(63,177,150,0.30);
+  }
+
+  .hg-gradient-hero {
+    background: linear-gradient(135deg, #1A4D40 0%, #257A62 30%, #3FB196 65%, #5DCFB0 100%);
+  }
+
+  .hg-hero-gradient {
+    background: linear-gradient(135deg, #0D3327 0%, #1A4D40 25%, #257A62 55%, #3FB196 80%, #52C9A8 100%);
+  }
+
+  .hg-gradient-pale {
+    background: linear-gradient(135deg, #E2F7F1 0%, #F4FDFB 60%, #FAFAFA 100%);
+  }
+
+  .hg-gradient-premium {
+    background: linear-gradient(135deg, #3FB196 0%, #2E9B80 35%, #D4AF37 100%);
+    box-shadow: 0 4px 20px rgba(63,177,150,0.25);
+  }
+
+  .hg-gold-badge {
+    background: linear-gradient(135deg, #C9A227 0%, #D4AF37 50%, #E8CC6A 100%);
+    color: #4A3210;
+  }
+
+  .hg-shadow-sm {
+    box-shadow: 0 1px 3px rgba(63,177,150,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .hg-shadow-md {
+    box-shadow: 0 4px 16px rgba(63,177,150,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .hg-shadow-lg {
+    box-shadow: 0 8px 32px rgba(63,177,150,0.16), 0 4px 16px rgba(0,0,0,0.08);
+  }
+
+  .hg-shadow-xl {
+    box-shadow: 0 20px 60px rgba(63,177,150,0.20), 0 8px 24px rgba(0,0,0,0.10);
+  }
+
+  /* Elevation system */
+  input[type="search"]::-webkit-search-cancel-button {
+    @apply hidden;
+  }
+
+  [contenteditable][data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+  }
+
+  .no-default-hover-elevate {}
+  .no-default-active-elevate {}
+
+  .toggle-elevate::before,
+  .toggle-elevate-2::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  .toggle-elevate.toggle-elevated::before {
+    background-color: var(--elevate-2);
+  }
+
+  .border.toggle-elevate::before {
+    inset: -1px;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate),
+  .active-elevate:not(.no-default-active-elevate),
+  .hover-elevate-2:not(.no-default-hover-elevate),
+  .active-elevate-2:not(.no-default-active-elevate) {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hover-elevate:not(.no-default-hover-elevate)::after,
+  .active-elevate:not(.no-default-active-elevate)::after,
+  .hover-elevate-2:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:not(.no-default-active-elevate)::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0px;
+    border-radius: inherit;
+    z-index: 999;
+  }
+
+  .hover-elevate:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-1);
+  }
+
+  .hover-elevate-2:hover:not(.no-default-hover-elevate)::after,
+  .active-elevate-2:active:not(.no-default-active-elevate)::after {
+    background-color: var(--elevate-2);
+  }
+
+  .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate:not(.no-active-interaction-elevate)::after,
+  .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
+    inset: -1px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE DESIGN — MOBILE FIRST
+   Mobile: 320px–480px | Tablet: 481px–768px
+   Laptop: 769px–1024px | Desktop: 1025px+
+   ============================================================ */
+
+/* ── Global baseline ── */
+@layer base {
+  /* Prevent horizontal overflow on every viewport */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* All images scale within their container — no overflow */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Minimum touch target height for interactive elements */
+  button, [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Very small buttons inside card badges/chips stay compact */
+  .btn-chip, .h-7, .h-8 {
+    min-height: unset;
+  }
+
+  /* Nav and footer anchor links must not inherit the 44px min-height —
+     those elements are visually compact by design */
+  nav a,
+  footer a,
+  .footer-contact-item {
+    min-height: unset;
+  }
+
+  /* Tables scroll horizontally on small screens instead of breaking layout */
+  table {
+    width: 100%;
+  }
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Responsive card grids (.resp-grid) ── */
+@layer utilities {
+  /* Desktop: 4 cols | Laptop: 3 cols | Tablet: 2 cols | Mobile: 1 col */
+  .resp-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+  @media (min-width: 481px) {
+    .resp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 769px) {
+    .resp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1025px) {
+    .resp-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+}
+
+/* ── Mobile: 320px–480px ── */
+@media (max-width: 480px) {
+  /* Clamp font sizes — headings scale down gracefully */
+  h1 { font-size: clamp(1.6rem, 6vw, 2.5rem) !important; }
+  h2 { font-size: clamp(1.3rem, 5vw, 2rem) !important; }
+  h3 { font-size: clamp(1.1rem, 4.5vw, 1.5rem) !important; }
+
+  /* Reduce hero section internal padding on very small screens */
+  .hero-section { padding-top: 2rem !important; padding-bottom: 4rem !important; }
+
+  /* Statistics row wraps nicely on small screens */
+  .stats-row { flex-wrap: wrap; gap: 1rem !important; }
+
+  /* Modal/dialogs fill the screen at the bottom on mobile */
+  [role="dialog"], .modal-content {
+    margin: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Admin sidebar — ensure hamburger menu is reachable */
+  .admin-top-bar { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+  /* Wrap action buttons in card footers on mobile */
+  .card-actions { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Ensure forms take full width */
+  form input, form select, form textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* 2-col grid for Order Type selector in cart (keep it compact) */
+  .order-type-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ── Tablet: 481px–768px ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  h1 { font-size: clamp(1.8rem, 5vw, 3rem); }
+  h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); }
+}
+
+/* ── Laptop: 769px–1024px ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 3-column product/store grids handled by Tailwind lg: prefix */
+}
+
+/* ── Admin portal responsive ── */
+@media (max-width: 1024px) {
+  /* Wrap admin header actions */
+  .admin-header-actions { flex-wrap: wrap; gap: 0.5rem; }
+
+  /* Admin stat cards: 2-col on tablet */
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Admin stat cards: 1-col on mobile */
+  .admin-stats-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  /* Sidebar overlay button is always reachable */
+  .portal-mobile-header { padding: 0 1rem; }
+
+  /* Full-width buttons in modals/sheets on mobile */
+  .dialog-footer-buttons {
+    flex-direction: column !important;
+    gap: 0.5rem;
+  }
+  .dialog-footer-buttons > * { width: 100% !important; }
+}
+
+/* ── Store card image — always proportional ── */
+.store-card-image {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* ── Safe area padding for bottom nav (iOS) ── */
+.safe-area-pb {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+}
+
+/* ── Prevent large hero images from overflowing on mobile ── */
+@media (max-width: 640px) {
+  .hero-image-grid { gap: 0.5rem !important; }
+  .hero-image-grid .col-span-2 { height: 160px !important; }
+  .hero-image-grid > div { height: 100px !important; }
+}
+
+/* ── Responsive horizontal filter rows — don't overflow, just scroll ── */
+.filter-row {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  padding-bottom: 4px;
+}
+
+/* ── Navigation: burger menu is visible on mobile ── */
+@media (min-width: 768px) {
+  .mobile-only { display: none !important; }
+}
+@media (max-width: 767px) {
+  .desktop-only { display: none !important; }
+}
+
+/* ── Admin portal responsive ── */
+@media (max-width: 767px) {
+  /* Allow horizontal scroll on admin data rows to prevent text wrap on small screens */
+  .admin-data-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Admin stat grid: 2 cols on mobile */
+  .xl\:grid-cols-6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Reduce admin card padding on mobile */
+  .admin-card { padding: 0.75rem !important; }
+
+  /* Store portal nav wraps correctly on mobile */
+  .portal-nav-item { min-height: 48px; }
+}
+
+/* ── Products page responsive ── */
+@media (max-width: 640px) {
+  /* Product images scale to full width */
+  .product-image-container {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ── Account pages responsive ── */
+@media (max-width: 767px) {
+  /* Account page grid: stack vertically on mobile (sidebar already handles this) */
+  .account-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Fix modals on mobile ── */
+@media (max-width: 640px) {
+  /* AlertDialog / dialog content — ensure no overflow */
+  [data-radix-dialog-content], [role="alertdialog"] {
+    max-width: calc(100vw - 2rem) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* ── Footer responsive ── */
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  .footer-grid > * + * { margin-top: 1.5rem; }
+}
+
+/* ============================================================
+   SYSTEM-WIDE ENHANCEMENTS — 2026 Design Standards
+   ============================================================ */
+
+/* ── Fluid typography using clamp() ── */
+:root {
+  --font-body:    clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
+  --font-h3:      clamp(1rem, 2vw, 1.375rem);
+  --font-h2:      clamp(1.25rem, 3vw, 2rem);
+  --font-h1:      clamp(1.75rem, 5vw, 3.5rem);
+  --line-height:  1.6;
+}
+
+/* Apply fluid line-height globally */
+body { line-height: var(--line-height); }
+
+/* ── Consistent form input height (44px minimum) ── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="number"],
+input[type="url"],
+input[type="date"],
+select,
+.input {
+  min-height: 44px;
+}
+
+/* ── Equal-height product card grids ── */
+.product-grid,
+[class*="grid-cols"] {
+  align-items: stretch;
+}
+
+/* ── Auto-fit card grid utility ── */
+.auto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ── Review cards: consistent equal-height layout ── */
+.review-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.review-card .review-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* ── Product card image: aspect ratio, no fixed heights ── */
+.product-card-image {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+.product-card-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Containers: max-width centered, side padding per breakpoint ── */
+.container-responsive {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;   /* Mobile: 16px */
+  padding-right: 1rem;
+}
+@media (min-width: 481px) {
+  .container-responsive { padding-left: 1.5rem; padding-right: 1.5rem; } /* Tablet: 24px */
+}
+@media (min-width: 769px) {
+  .container-responsive { padding-left: 2rem; padding-right: 2rem; }    /* Laptop: 32px */
+}
+@media (min-width: 1025px) {
+  .container-responsive { padding-left: 3rem; padding-right: 3rem; }    /* Desktop: 48px */
+}
+
+/* ── Section spacing system ── */
+.section-sm  { padding-top: 2rem;  padding-bottom: 2rem;  }   /* 32px mobile */
+.section-md  { padding-top: 3rem;  padding-bottom: 3rem;  }   /* 48px tablet */
+.section-lg  { padding-top: 5rem;  padding-bottom: 5rem;  }   /* 80px desktop */
+@media (min-width: 769px) {
+  .section-sm { padding-top: 3rem; padding-bottom: 3rem; }
+  .section-md { padding-top: 5rem; padding-bottom: 5rem; }
+}
+@media (min-width: 1025px) {
+  .section-sm { padding-top: 5rem;  padding-bottom: 5rem;  }
+  .section-md { padding-top: 6rem;  padding-bottom: 6rem;  }
+  .section-lg { padding-top: 6rem;  padding-bottom: 6rem;  }
+}
+
+/* ── Admin sidebar mobile: full collapse ── */
+@media (max-width: 767px) {
+  .admin-sidebar {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100%;
+    z-index: 50;
+    transition: left 0.3s ease;
+  }
+  .admin-sidebar.open { left: 0; }
+}
+
+/* ── Data tables: horizontal scroll on mobile ── */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+.table-wrap table {
+  min-width: 540px;
+}
+
+/* ── Mobile: ensure 2-col store/product grids are comfortable ── */
+@media (max-width: 480px) {
+  /* Tighten section vertical padding */
+  section.py-16 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+  section.py-20 { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+
+  /* Gap between cards: tighter on narrow screens */
+  .gap-6 { gap: 0.75rem !important; }
+}
+
+/* ── Tablet: balanced layout adjustments ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  section.py-16 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+  section.py-20 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+}
+
+/* ── Portal mobile header ── */
+@media (max-width: 767px) {
+  .portal-mobile-header { padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+
+/* ── Radix dialog: mobile-safe sizing ── */
+@media (max-width: 640px) {
+  [data-radix-dialog-content] {
+    width: calc(100vw - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+  }
+}
+
+/* ── Filter row: horizontal scroll ── */
+.filter-row {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+
+/* ── Utility: mobile/desktop visibility ── */
+.mobile-only  { display: block; }
+.desktop-only { display: none;  }
+@media (min-width: 769px) {
+  .mobile-only  { display: none;  }
+  .desktop-only { display: block; }
+}

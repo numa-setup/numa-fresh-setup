@@ -1,0 +1,41 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Do NOT cause any data loss. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. Cart Sidebar — Add Similar Products & Choose Replacement
+In the cart sidebar (as shown in the screenshot), add:
+
+Similar Products section — showing similar products for all items currently in the cart.
+Choose Replacement option — so the customer can replace any cart item with a similar product directly from the sidebar.
+
+These features must work the same way as on the full cart page.
+
+2. Cart Page & Sidebar — Add More Products Option
+On both the full cart page and the cart sidebar, add an option that allows the customer to:
+
+Add more products to the cart from the same store that is already selected.
+Clicking this option should navigate the customer back to that store's product page — but without removing any products already in the cart.
+
+
+3. Place Order — Confirmation Alert
+When an order is successfully placed, show a clear confirmation message/alert to the customer — something like "Your order has been placed successfully!" — so the customer gets proper confirmation feedback.
+
+4. Order Tracking Page — Fix Layout
+
+Remove the QR code from the order tracking page.
+Make the order tracking progress horizontal — currently the right side of the page is empty. The tracking steps should be displayed horizontally to properly use the full page width.
+
+
+5. Product Detail Page — Move Similar Products Above Reviews
+On the product detail page, Similar Products are currently showing after the Reviews section. Move them so they appear before the Reviews section.
+
+6. Store Detail Page — Relocate "Chat with Store" & "Write a Review" Buttons
+Remove the "Chat with Store" and "Write a Review" buttons from their current position (where they look out of place). Relocate them to a more prominent and visually appropriate location on the store detail page — somewhere they look natural and stand out properly.
+
+7. Logout — Confirmation & Redirect
+For every portal (Customer Website, Store Owner Portal, Admin Panel):
+
+When a user clicks logout, show a confirmation prompt — "Are you sure you want to logout?" with Confirm and Cancel options.
+After confirmed logout, redirect the user to the same portal's login page — customer logout goes to customer login, store owner logout goes to store owner login, admin logout goes to admin login.
+
+
+Again — do not touch anything already working. Do not cause any data loss. Only implement the seven points listed above.

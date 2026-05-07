@@ -1,0 +1,50 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. Website CMS — Hero Featured Stores: Add Store Link Option
+In the Admin Panel under Website CMS → Hero Featured Stores, add a store link field for each featured store. When a customer clicks on a featured store image in the Hero section on the client website, they should be taken directly to that store's detail page.
+
+2. Client Website — Hero Section Search Bar: Real-Time Store Search
+The Hero section on the client website already has a search bar. Enhance it so that when a customer starts typing characters, a real-time dropdown list of relevant stores appears. When the customer clicks on any store from that list, they should be taken directly to that store's detail page.
+
+3. Store Detail Page — Hero Image & Product Search Bar
+
+Increase the size of the hero/banner image on the store detail page slightly.
+Add a search bar inside the hero section of the store detail page. This search bar should allow customers to search for products within that specific store in real time.
+As characters are typed, a dropdown list of matching products from that store should appear.
+When a product is clicked from the list, the customer should be taken directly to that product's detail page.
+
+
+4. Client Website — "Halal Stores Near You" Section: Pagination with Show More
+In the "Halal Stores Near You" section on the client website:
+
+Initially show 2 rows, with 3 stores per row (6 stores total).
+Below that, add a "Show More" button.
+Each time "Show More" is clicked, 1 additional row of stores (3 stores) should be revealed.
+This should continue until all stores are shown.
+
+
+5. Client Website — "Loved by the Community" Reviews Section: Dynamic & Admin-Controlled
+The "Loved by the Community" reviews section should become fully dynamic:
+
+Reviews should be real-time and pulled from the database.
+The Admin should have the authority to choose which reviews are displayed in this section (approve/feature specific reviews).
+For now, until real reviews exist, populate this section with a few professional dummy reviews so the section looks complete.
+
+
+6. Client Website — Add a "Contact Us" Section Before the Footer
+Add a proper Contact Us section just above the Footer. It should include all basic contact information such as:
+
+Phone number
+Email address
+Address
+Social media links (if applicable)
+A contact form or any other standard contact info
+
+Keep the design clean and professional, consistent with the rest of the website.
+
+7. Footer — Fix Layout: All Sections in One Row
+Currently the Footer has these sections: My Account, For Businesses, Support, Contact — but "Contact" is wrapping to a second row, which looks bad.
+Fix the Footer layout so that all four sections appear in a single row properly aligned, regardless of screen size (make it responsive if needed).
+
+Again — do not touch anything that is already working. Only implement the seven points listed above.

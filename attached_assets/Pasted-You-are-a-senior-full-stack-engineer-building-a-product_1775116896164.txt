@@ -1,0 +1,831 @@
+You are a senior full-stack engineer building a production-grade, 
+elite-quality halal grocery marketplace called "Halal Grocery".
+
+This is NOT an Instacart clone. This is a store-fulfilled, 
+pickup-first halal marketplace where:
+- Stores own the entire fulfillment process
+- Fresh meat is cut on demand with weight-based final charging
+- Pickup (express + curbside) is the primary model
+- Delivery is optional and store-managed (store's own driver)
+- Platform has NO independent shoppers or driver network
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DESIGN SYSTEM — Apply everywhere, no exceptions
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Primary Color:     #3FB196
+Primary Dark:      #2A7D6A
+Primary Darker:    #1E5C4D
+Primary Light:     #6FCBB3
+Primary Pale:      #E8F7F3
+Primary Gradient:  linear-gradient(135deg, #3FB196 0%, #2A7D6A 100%)
+Hero Gradient:     linear-gradient(135deg, #1E5C4D 0%, #3FB196 50%, #6FCBB3 100%)
+
+Gold Accent:       #D4AF37  (premium/halal certified badge)
+Gold Light:        #F5E6A3
+Warm White:        #FAFAF8
+Surface:           #F4F7F6
+Dark Text:         #1A2E29
+Muted Text:        #5A7A72
+Border:            #D4E8E3
+Error:             #E53935
+Success:           #3FB196
+Warning:           #F59E0B
+
+Typography:
+  Display:  'Playfair Display', serif  (headings, hero text)
+  Body:     'Inter', sans-serif        (all body text, UI)
+  Arabic:   'Amiri', serif             (Arabic/Urdu text)
+  Mono:     'JetBrains Mono'           (codes, prices)
+
+Load from Google Fonts:
+  https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap
+
+Design Principles:
+- Premium, clean, trustworthy — like a luxury food brand
+- Generous whitespace, soft shadows (no harsh borders)
+- Micro-animations: hover lifts, smooth transitions (200-300ms)
+- Mobile-first, fully responsive (320px to 2560px)
+- Every interactive element has hover + active + focus states
+- Skeleton loaders (never spinners)
+- Toast notifications (top-right, auto-dismiss 4s)
+- Empty states with illustrated SVG (no blank pages)
+- Images: lazy-loaded, WebP with fallback, aspect-ratio locked
+
+Shadow System:
+  sm:  0 1px 3px rgba(63,177,150,0.08), 0 1px 2px rgba(0,0,0,0.04)
+  md:  0 4px 16px rgba(63,177,150,0.12), 0 2px 8px rgba(0,0,0,0.06)
+  lg:  0 8px 32px rgba(63,177,150,0.16), 0 4px 16px rgba(0,0,0,0.08)
+  xl:  0 20px 60px rgba(63,177,150,0.20), 0 8px 24px rgba(0,0,0,0.10)
+
+Border Radius:
+  sm: 8px  |  md: 12px  |  lg: 16px  |  xl: 24px  |  pill: 999px
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL STRUCTURE — SEO Optimized (Google Indexing)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All URLs must be:
+- Lowercase, hyphen-separated, no underscores
+- Descriptive and keyword-rich for Google
+- Canonical tags on every page
+- Open Graph + Twitter Card meta tags
+- Structured data (JSON-LD) on product + store pages
+- Sitemap.xml auto-generated
+- robots.txt configured
+
+Public routes (indexable):
+/                                    → Homepage
+/stores                              → All halal stores near you
+/stores/[city]                       → Halal stores in [city]
+/stores/[city]/[store-slug]          → Store detail page
+/stores/[city]/[store-slug]/[cat]    → Category in store
+/products/[product-slug]             → Product detail (SEO rich)
+/halal-meat                          → Fresh halal meat landing
+/halal-groceries                     → Grocery categories landing
+/pickup-groceries                    → Express pickup landing
+/curbside-pickup                     → Curbside pickup landing
+/eid-specials                        → Eid/Qurbani seasonal page
+/blog                                → Halal food blog (future)
+
+Auth routes (no-index):
+/login
+/signup
+/verify-email
+/forgot-password
+/reset-password
+
+Customer portal (no-index, authenticated):
+/account                             → Profile & settings
+/account/orders                      → Order history
+/account/orders/[order-id]           → Order detail & tracking
+/account/orders/[order-id]/track     → Live tracking
+/account/addresses                   → Saved addresses
+/account/payment-methods             → Payment methods
+/account/membership                  → Subscription plan
+/account/loyalty                     → Points & rewards
+/account/notifications               → Notification settings
+/account/meal-planner                → AI Halal Meal Planner
+/account/scheduled-orders            → Recurring orders
+/account/group-orders                → Group/family orders
+/checkout                            → Checkout
+/checkout/confirmation/[order-id]    → Order confirmation
+
+Store portal (no-index):
+/store-portal                        → Store dashboard
+/store-portal/orders                 → Incoming orders
+/store-portal/orders/[id]            → Order detail
+/store-portal/products               → Product management
+/store-portal/inventory              → Inventory control
+/store-portal/analytics              → Store analytics
+/store-portal/promotions             → Deals & promos
+/store-portal/settings               → Store settings
+/store-portal/payouts                → Earnings & payouts
+/store-portal/onboarding             → New store setup
+
+Admin portal (no-index):
+/admin                               → Admin dashboard
+/admin/stores                        → Store management
+/admin/orders                        → All orders
+/admin/users                         → User management
+/admin/finance                       → Revenue & payouts
+/admin/analytics                     → Platform analytics
+/admin/content                       → CMS (banners, pages)
+/admin/settings                      → Platform config
+/admin/support                       → Support tickets
+/admin/audit                         → Audit logs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECH STACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Frontend:  React 18 + Vite + React Router v6 + Tailwind CSS
+           + Framer Motion (animations) + React Query (data fetching)
+Backend:   Node.js 20 + Express.js + REST API
+Database:  PostgreSQL 15 + Prisma ORM
+Cache:     Redis (sessions, queues, rate limiting)
+Real-time: Socket.io (order updates, store notifications)
+Auth:      JWT (15min access + 7day refresh) + bcrypt + Google OAuth
+Payments:  Stripe (PaymentIntents + pre-auth + Connect payouts)
+Maps:      Google Maps API (store locator, curbside)
+Email:     Nodemailer + HTML templates
+SMS:       Twilio (order ready, pickup reminders)
+Files:     Multer + Cloudinary (images, documents)
+i18n:      i18next (English + Urdu + Arabic)
+SEO:       React Helmet Async (meta, OG, structured data)
+QR:        qrcode.js (pickup QR codes)
+Print:     react-to-print (thermal printer order slips)
+Charts:    Recharts (analytics dashboards)
+Validation: Zod (frontend + backend)
+Testing:   Jest + Supertest (API tests)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPLETE DATABASE SCHEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Build complete Prisma schema with all these models:
+
+enum UserRole {
+  CUSTOMER
+  STORE_OWNER
+  STORE_STAFF
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  STORE_CONFIRMED
+  IN_PREPARATION
+  REPLACEMENT_HANDLING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum OrderType {
+  EXPRESS_PICKUP
+  CURBSIDE_PICKUP
+  STORE_DELIVERY
+}
+
+enum SubstitutionPreference {
+  NO_REPLACEMENT
+  REPLACE_SIMILAR
+  CHOOSE_SPECIFIC
+  CONTACT_FIRST
+}
+
+enum ProductType {
+  PACKAGED
+  FRESH_MEAT
+  PRODUCE
+  FROZEN
+  SPICES
+  BAKERY
+  DAIRY
+  BEVERAGES
+}
+
+enum MeatCutType {
+  WHOLE
+  HALF
+  QUARTER
+  BONELESS
+  BONE_IN
+  CUBED
+  GROUND
+  CUSTOM
+}
+
+enum SubscriptionPlan {
+  FREE
+  BASIC
+  PREMIUM
+  FAMILY
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String?
+  googleId          String?   @unique
+  role              UserRole  @default(CUSTOMER)
+  firstName         String
+  lastName          String
+  phone             String?
+  phoneVerified     Boolean   @default(false)
+  avatar            String?
+  preferredLanguage String    @default("en")
+  isVerified        Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  loyaltyPoints     Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  addresses         Address[]
+  orders            Order[]
+  reviews           Review[]
+  subscription      Subscription?
+  loyaltyTxns       LoyaltyTransaction[]
+  notifications     Notification[]
+  groupOrders       GroupOrderMember[]
+  recurringOrders   RecurringOrder[]
+  mealPlans         MealPlan[]
+  healthBenefits    HealthBenefit[]
+  supportTickets    SupportTicket[]
+  storeProfile      Store?
+  storeStaff        StoreStaff[]
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  label        String   @default("Home")
+  fullName     String
+  phone        String
+  line1        String
+  line2        String?
+  city         String
+  province     String
+  postalCode   String
+  country      String   @default("CA")
+  lat          Float?
+  lng          Float?
+  isDefault    Boolean  @default(false)
+  instructions String?
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id])
+  orders       Order[]
+}
+
+model Store {
+  id                  String    @id @default(cuid())
+  ownerId             String    @unique
+  slug                String    @unique
+  name                String
+  nameUrdu            String?
+  nameArabic          String?
+  description         String?
+  logo                String?
+  banner              String?
+  phone               String
+  email               String
+  address             String
+  city                String
+  province            String
+  postalCode          String
+  lat                 Float
+  lng                 Float
+  isActive            Boolean   @default(false)
+  isApproved          Boolean   @default(false)
+  isHalalCertified    Boolean   @default(false)
+  halalCertNumber     String?
+  halalCertExpiry     DateTime?
+  halalCertDoc        String?
+  commissionRate      Float     @default(7.0)
+  convenienceFee      Float     @default(2.99)
+  curbsideFee         Float     @default(0.0)
+  minOrderAmount      Float     @default(0.0)
+  avgPrepTimeMinutes  Int       @default(30)
+  deliveryAvailable   Boolean   @default(false)
+  deliveryFee         Float?
+  deliveryRadiusKm    Float?
+  pickupAvailable     Boolean   @default(true)
+  curbsideAvailable   Boolean   @default(false)
+  maxOrdersPerSlot    Int       @default(10)
+  slotDurationMinutes Int       @default(30)
+  rating              Float     @default(0.0)
+  totalRatings        Int       @default(0)
+  openingHoursJson    Json
+  deliveryZonesJson   Json?
+  bankingInfo         Json?
+  stripeAccountId     String?
+  isMasjidAffiliated  Boolean   @default(false)
+  masjidName          String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  owner               User      @relation(fields: [ownerId], references: [id])
+  staff               StoreStaff[]
+  products            Product[]
+  orders              Order[]
+  reviews             Review[]
+  analytics           StoreAnalytic[]
+  promotions          Promotion[]
+  pickupSlots         PickupSlot[]
+  payouts             StorePayout[]
+}
+
+model StoreStaff {
+  id        String   @id @default(cuid())
+  storeId   String
+  userId    String
+  role      String   @default("staff")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  
+  store     Store    @relation(fields: [storeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Product {
+  id                  String      @id @default(cuid())
+  storeId             String
+  slug                String
+  name                String
+  nameUrdu            String?
+  nameArabic          String?
+  description         String?
+  descriptionUrdu     String?
+  productType         ProductType
+  category            String
+  subcategory         String?
+  images              String[]
+  price               Float
+  comparePrice        Float?
+  unit                String
+  stockQty            Float
+  lowStockThreshold   Float       @default(5)
+  barcode             String?
+  sku                 String?
+  isActive            Boolean     @default(true)
+  isFeatured          Boolean     @default(false)
+  isHalalCertified    Boolean     @default(true)
+  isFreshMeat         Boolean     @default(false)
+  meatAnimalType      String?
+  availableCuts       Json?
+  estimatedWeightKg   Float?
+  pricePerKg          Float?
+  nutritionJson       Json?
+  metaTitle           String?
+  metaDescription     String?
+  tags                String[]
+  freshnessLabel      String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  
+  store               Store       @relation(fields: [storeId], references: [id])
+  orderItems          OrderItem[]
+  substitutionFor     OrderItem[] @relation("Substitution")
+  
+  @@unique([storeId, slug])
+}
+
+model PickupSlot {
+  id           String   @id @default(cuid())
+  storeId      String
+  date         DateTime
+  startTime    String
+  endTime      String
+  maxOrders    Int
+  bookedOrders Int      @default(0)
+  isAvailable  Boolean  @default(true)
+  
+  store        Store    @relation(fields: [storeId], references: [id])
+  orders       Order[]
+}
+
+model Order {
+  id                  String                @id @default(cuid())
+  orderNumber         String                @unique
+  customerId          String
+  storeId             String
+  addressId           String?
+  pickupSlotId        String?
+  status              OrderStatus           @default(PENDING)
+  orderType           OrderType
+  
+  subtotal            Float
+  convenienceFee      Float                 @default(0)
+  deliveryFee         Float                 @default(0)
+  curbsideFee         Float                 @default(0)
+  discount            Float                 @default(0)
+  tip                 Float                 @default(0)
+  estimatedTotal      Float
+  finalTotal          Float?
+  
+  promoCode           String?
+  promoDiscount       Float                 @default(0)
+  loyaltyPointsUsed   Int                   @default(0)
+  loyaltyDiscount     Float                 @default(0)
+  
+  paymentIntentId     String?
+  paymentStatus       String                @default("pending")
+  stripeChargeId      String?
+  preAuthAmount       Float?
+  finalCaptured       Boolean               @default(false)
+  
+  vehicleInfo         Json?
+  pickupQrCode        String?
+  pickupConfirmedAt   DateTime?
+  specialInstructions String?
+  
+  customerRating      Int?
+  storeRating         Int?
+  customerReview      String?
+  
+  cancelReason        String?
+  refundAmount        Float?
+  refundedAt          DateTime?
+  
+  estimatedReadyAt    DateTime?
+  readyAt             DateTime?
+  completedAt         DateTime?
+  
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  
+  customer            User                  @relation(fields: [customerId], references: [id])
+  store               Store                 @relation(fields: [storeId], references: [id])
+  address             Address?              @relation(fields: [addressId], references: [id])
+  pickupSlot          PickupSlot?           @relation(fields: [pickupSlotId], references: [id])
+  items               OrderItem[]
+  statusHistory       OrderStatusHistory[]
+  messages            OrderMessage[]
+  notifications       Notification[]
+}
+
+model OrderItem {
+  id                      String                  @id @default(cuid())
+  orderId                 String
+  productId               String
+  name                    String
+  productType             ProductType
+  quantity                Float
+  unit                    String
+  unitPrice               Float
+  totalPrice              Float
+  
+  isFreshMeat             Boolean                 @default(false)
+  meatCutType             MeatCutType?
+  meatCutInstructions     String?
+  meatMarination          String?
+  meatPackagingPref       String?
+  estimatedWeightKg       Float?
+  finalWeightKg           Float?
+  finalPrice              Float?
+  
+  substitutionPref        SubstitutionPreference  @default(NO_REPLACEMENT)
+  substituteProductId     String?
+  substitutionStatus      String?
+  substitutionNote        String?
+  
+  itemStatus              String                  @default("pending")
+  isOutOfStock            Boolean                 @default(false)
+  staffNote               String?
+  
+  order                   Order                   @relation(fields: [orderId], references: [id])
+  product                 Product                 @relation(fields: [productId], references: [id])
+  substituteProduct       Product?                @relation("Substitution", fields: [substituteProductId], references: [id])
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  note      String?
+  createdBy String?
+  createdAt DateTime    @default(now())
+  
+  order     Order       @relation(fields: [orderId], references: [id])
+}
+
+model OrderMessage {
+  id         String   @id @default(cuid())
+  orderId    String
+  senderId   String
+  senderRole String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  
+  order      Order    @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  storeId     String
+  orderId     String   @unique
+  rating      Int
+  comment     String?
+  reply       String?
+  repliedAt   DateTime?
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+  store       Store    @relation(fields: [storeId], references: [id])
+}
+
+model Subscription {
+  id                   String           @id @default(cuid())
+  userId               String           @unique
+  plan                 SubscriptionPlan @default(FREE)
+  status               String           @default("active")
+  price                Float            @default(0)
+  billingCycle         String           @default("monthly")
+  nextBillingDate      DateTime?
+  stripeSubscriptionId String?
+  cancelledAt          DateTime?
+  
+  user                 User             @relation(fields: [userId], references: [id])
+}
+
+model LoyaltyTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  points      Int
+  type        String
+  orderId     String?
+  description String
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model PromoCode {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  discountType  String
+  discountValue Float
+  minOrder      Float    @default(0)
+  maxUses       Int?
+  usedCount     Int      @default(0)
+  storeId       String?
+  expiryDate    DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model RecurringOrder {
+  id            String   @id @default(cuid())
+  userId        String
+  storeId       String
+  name          String
+  frequency     String
+  nextOrderDate DateTime
+  itemsJson     Json
+  isActive      Boolean  @default(true)
+  lastRunAt     DateTime?
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model GroupOrder {
+  id          String             @id @default(cuid())
+  creatorId   String
+  storeId     String
+  name        String
+  status      String             @default("open")
+  deadline    DateTime
+  total       Float              @default(0)
+  shareLink   String             @unique
+  createdAt   DateTime           @default(now())
+  
+  members     GroupOrderMember[]
+}
+
+model GroupOrderMember {
+  id           String     @id @default(cuid())
+  groupOrderId String
+  userId       String
+  itemsJson    Json       @default("[]")
+  subtotal     Float      @default(0)
+  hasPaid      Boolean    @default(false)
+  
+  groupOrder   GroupOrder @relation(fields: [groupOrderId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+}
+
+model MealPlan {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  weekStart   DateTime
+  mealsJson   Json
+  autoOrder   Boolean  @default(false)
+  storeId     String?
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  orderId   String?
+  type      String
+  title     String
+  titleUrdu String?
+  body      String
+  bodyUrdu  String?
+  dataJson  Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  order     Order?   @relation(fields: [orderId], references: [id])
+}
+
+model Promotion {
+  id            String   @id @default(cuid())
+  storeId       String
+  name          String
+  type          String
+  discountValue Float
+  productIds    String[]
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  
+  store         Store    @relation(fields: [storeId], references: [id])
+}
+
+model StoreAnalytic {
+  id            String   @id @default(cuid())
+  storeId       String
+  date          DateTime
+  ordersCount   Int      @default(0)
+  revenue       Float    @default(0)
+  commission    Float    @default(0)
+  avgPrepTime   Int?
+  topProductsJson Json?
+  createdAt     DateTime @default(now())
+  
+  store         Store    @relation(fields: [storeId], references: [id])
+}
+
+model StorePayout {
+  id              String   @id @default(cuid())
+  storeId         String
+  period          String
+  grossRevenue    Float
+  commission      Float
+  netAmount       Float
+  status          String   @default("pending")
+  stripeTransferId String?
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+  
+  store           Store    @relation(fields: [storeId], references: [id])
+}
+
+model HealthBenefit {
+  id                      String   @id @default(cuid())
+  userId                  String
+  providerName            String
+  benefitAmount           Float
+  remainingAmount         Float
+  eligibleCategoriesJson  Json
+  expiryDate              DateTime?
+  createdAt               DateTime @default(now())
+  
+  user                    User     @relation(fields: [userId], references: [id])
+}
+
+model SupportTicket {
+  id          String           @id @default(cuid())
+  userId      String
+  orderId     String?
+  subject     String
+  status      String           @default("open")
+  priority    String           @default("normal")
+  createdAt   DateTime         @default(now())
+  resolvedAt  DateTime?
+  
+  user        User             @relation(fields: [userId], references: [id])
+  messages    SupportMessage[]
+}
+
+model SupportMessage {
+  id        String   @id @default(cuid())
+  ticketId  String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+  
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  adminId      String
+  action       String
+  targetType   String
+  targetId     String
+  oldValueJson Json?
+  newValueJson Json?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  valueJson Json
+  updatedAt DateTime @updatedAt
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BACKEND SETUP — Build everything below
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Express server with:
+   - helmet (security headers)
+   - cors (frontend URL only)
+   - morgan (logging)
+   - express-rate-limit (100 req/min global, 10/min auth)
+   - compression (gzip)
+   - Global error handler middleware
+   - Zod validation middleware
+
+2. Prisma client singleton
+
+3. Redis client setup (ioredis)
+
+4. Socket.io server with namespaces:
+   /customer  → order updates, messages
+   /store     → new orders, status changes
+   /admin     → platform-wide events
+
+5. Complete Auth System:
+   POST /api/auth/signup
+   POST /api/auth/verify-email/:token
+   POST /api/auth/login
+   POST /api/auth/google
+   POST /api/auth/refresh
+   POST /api/auth/logout
+   POST /api/auth/forgot-password
+   POST /api/auth/reset-password/:token
+   GET  /api/auth/me
+
+   - bcrypt (12 rounds)
+   - Email verification tokens in Redis (24hr TTL)
+   - Password reset tokens in Redis (1hr TTL)
+   - Refresh tokens in Redis (7 day TTL)
+   - Google OAuth with passport.js
+
+6. Middleware:
+   - authenticate: verify JWT, attach req.user
+   - authorize(...roles): role-based access
+   - validateBody(schema): Zod validation
+   - auditLog: log all admin actions
+   - rateLimiter: per-endpoint limits
+
+7. Email Service (Nodemailer):
+   Beautiful HTML templates for:
+   - Welcome + verify email
+   - Password reset
+   - Order confirmed
+   - Order ready for pickup
+   - Order completed
+   - Refund processed
+   - Weekly store earnings summary
+   All templates use brand colors (#3FB196)
+
+8. SMS Service (Twilio):
+   - Order ready for pickup (with store address)
+   - "Your order is ready! Come pick up in 60 seconds"
+   - Substitution approval needed
+   - Curbside: "Your order is coming to your vehicle"
+   Bilingual: English + Urdu option
+
+9. QR Code Service:
+   - Generate unique QR per order
+   - Store in DB + Cloudinary
+   - Verify QR on pickup scan
+
+10. Complete seed file:
+    - 1 admin: admin@halalGrocery.com / Admin@123
+    - 3 halal stores (full profiles, halal certified)
+    - 50+ products (meat cuts, spices, packaged, produce)
+    - 5 customers with full order histories
+    - Various order statuses
+    - 3 promo codes
+    - Pickup slots for next 7 days
+
+Build, run migrations, seed. Verify everything compiles.
+No frontend yet. Phase 1 = backend foundation only.

@@ -1,0 +1,409 @@
+You are working on the EXISTING "Numa Fresh Marketplace" project.
+Do NOT rebuild anything from scratch.
+Do NOT change any working feature, design, color, or layout.
+Only fix the specific issues listed below.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CRITICAL INSTRUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Work on ONE FIX AT A TIME only.
+After each fix create a Replit Checkpoint named:
+"Fix-X-Complete: [short description]"
+Stop after each fix and wait for my confirmation before next fix.
+Do not touch anything outside the specific files related to each fix.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — STORE APPLICATION NOT REACHING ADMIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-1-Complete: Store Submission Reaching Admin"
+
+This is the most critical bug. Full trace and fix required.
+
+Step 1 — Find the submission endpoint:
+Look for the API route that handles the final store onboarding
+submission. It will be something like:
+POST /api/store/onboarding/submit
+OR POST /api/store/setup/complete
+OR PATCH /api/store/onboarding
+Find it by searching for where onboardingCompleted is set to true
+OR where the final "Submit" button in the store onboarding wizard
+sends its request.
+
+Step 2 — Check what happens after submission:
+In that endpoint handler, verify:
+- Is the store's status being set to 'pending' on submission?
+  If not: ADD this line in the handler after saving:
+  store.storeStatus = 'pending'  (or equivalent field name)
+  Save it to the database.
+- Is any notification or socket event being emitted to admin?
+  If not: ADD a socket emission to the /admin namespace:
+  io.to('admin_room').emit('new_store_application', {
+    storeId: store.id,
+    storeName: store.name,
+    ownerName: store.ownerName,
+    submittedAt: new Date()
+  })
+
+Step 3 — Fix the admin Pending tab query:
+Find the admin stores API route. It will be something like:
+GET /api/admin/stores OR GET /api/admin/stores?status=pending
+Find the database query for the Pending tab.
+Make sure it fetches stores WHERE storeStatus = 'pending'
+(use the exact field name that exists in your schema).
+If the query has no WHERE clause or wrong filter: fix it.
+
+Step 4 — Fix ALL admin store tabs to filter correctly:
+In the same admin stores endpoint (or separate endpoints per tab):
+- Pending tab query:   WHERE storeStatus = 'pending'
+- Approved tab query:  WHERE storeStatus = 'approved'
+- Declined tab query:  WHERE storeStatus = 'declined'
+  (also check for 'rejected' — use whichever value exists)
+- Suspended tab query: WHERE storeStatus = 'suspended'
+- All Stores tab:      No filter (show all, add status badge per row)
+
+Step 5 — Fix store appearance on customer website after approval:
+Find the admin approve store endpoint:
+PATCH /api/admin/stores/:id/approve (or similar)
+In that handler ensure:
+- storeStatus is set to 'approved'
+- isActive or showOnWebsite is set to true
+- A socket event is emitted to /customer namespace:
+  io.to('customer_room').emit('store_approved', {
+    storeId: store.id
+  })
+Find the customer website stores query:
+GET /api/stores (public endpoint)
+Make sure it only returns stores WHERE storeStatus = 'approved'
+AND showOnWebsite = true (or equivalent active flag).
+
+Step 6 — Verify the full flow works:
+Create a test store owner account → complete onboarding →
+submit → confirm store appears in admin Pending tab →
+admin approves → confirm store appears on customer website.
+Fix any remaining issues found during this test.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — ORDER PLACEMENT ERROR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-2-Complete: Orders Working"
+
+Step 1 — Find and log the exact error:
+Look at the order creation endpoint:
+POST /api/orders (or similar)
+Add console.log statements to log:
+- The incoming request body
+- Each database operation
+- The exact error message and stack trace
+Run a test order and capture the full error from Replit console logs.
+
+Step 2 — Common order errors to check and fix:
+
+CHECK A — Missing required fields:
+The order payload from the frontend may be missing fields the
+backend expects. Compare what the frontend sends vs what the
+backend requires. Fix either the frontend payload or make
+backend fields optional with defaults.
+
+CHECK B — Foreign key constraint:
+The order may reference a storeId, productId, or userId that
+doesn't exist or uses wrong field name. Verify:
+- customerId in the order points to a real user
+- storeId points to a real approved store
+- Each order item's productId points to a real product
+- All IDs use the same format (UUID vs integer — must match)
+
+CHECK C — Payment/Stripe error:
+If order creation triggers Stripe payment intent creation and
+Stripe keys are in test mode or misconfigured, it will error.
+Check: if Stripe is called during order creation, wrap it in
+try/catch and log the Stripe error separately.
+If Stripe is the cause: make Stripe optional for now
+(create order without payment intent, mark as 'pending_payment')
+so the rest of the order flow can be tested.
+
+CHECK D — Transaction/database error:
+If the order uses a database transaction, any single failure
+rolls back everything. Add individual try/catch blocks inside
+the transaction to identify which specific insert is failing.
+
+Step 3 — Fix the identified error:
+Based on what the logs reveal, fix the specific cause.
+Do not rewrite the entire order flow.
+
+Step 4 — Ensure order reaches store portal:
+After order is created successfully:
+- Find the socket emission in the order creation handler
+- It should emit to the store's room: 
+  io.to(`store_${storeId}`).emit('new_order', { orderDetails })
+- If this emission is missing: add it
+- Verify the store portal is listening for 'new_order' events
+  and displaying the order in the incoming queue
+
+Step 5 — Ensure admin is notified:
+After order is created:
+- Emit to admin room:
+  io.to('admin_room').emit('new_order', {
+    orderId, storeId, storeName,
+    customerName, total, items
+  })
+- Verify admin dashboard live feed shows new orders
+
+Step 6 — Test complete order flow:
+Place a test order as customer → verify no error →
+verify order appears in correct store portal →
+verify admin is notified.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 3 — MESSAGING SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-3-Complete: Messaging Working"
+
+3A — Admin can message any user:
+In the admin chat section (/admin/chat):
+- Find the users list or conversations list
+- Ensure ALL registered users appear in this list
+  (customers, store owners — not just those who messaged first)
+- If the list only shows existing conversations:
+  Add a "New Message" button that opens a user search/selector
+  Admin selects any user → starts a conversation with them
+- Sending a message from admin to user:
+  Message saves to DB with senderId = adminId, receiverId = userId
+  Socket emits to that specific user's room:
+  io.to(`user_${receiverId}`).emit('new_message', { message })
+
+3B — Store owner can message their store's customers:
+In the store portal chat section (/store-portal/chat):
+- The store owner should see a list of customers who have
+  placed orders at their store
+- Store owner can select any of these customers and send a message
+- If this list doesn't exist: create it by querying orders for
+  this store and extracting unique customer IDs with their names
+- Sending: same socket pattern as above
+
+3C — Automatic Welcome Messages:
+When any new user registers (POST /api/auth/register or /signup):
+After the user is created in the database:
+
+Send welcome message FROM admin TO new user:
+- Find the admin user ID (the first user with role='admin')
+- Create a message record:
+  senderId = adminId
+  receiverId = newUserId  
+  content = "Welcome to Numa Fresh Marketplace! 
+  We're excited to have you. Browse our halal stores,
+  discover fresh products, and enjoy a seamless shopping experience.
+  Feel free to message us if you need any help!"
+  isAutomatic = true
+  createdAt = now()
+
+When any new customer visits a store page (or places first order):
+Trigger welcome message FROM that store owner TO the customer:
+- Find the storeOwner's userId for that store
+- Check if a conversation between storeOwner and customer already exists
+- If NO existing conversation: create welcome message:
+  senderId = storeOwnerUserId
+  receiverId = customerId
+  content = "Welcome to [Store Name]! 
+  Thank you for visiting us. We offer fresh halal products 
+  and are here to help with any questions. Happy shopping!"
+  isAutomatic = true
+
+For both welcome messages:
+- If a welcome message from this sender to this receiver already
+  exists (isAutomatic = true): do NOT send another one
+- Use a flag or check to ensure welcome messages are sent only once
+  per sender-receiver pair
+
+3D — Real-time message delivery:
+Ensure all messages (admin→user, store→customer, user→admin)
+are delivered in real time via Socket.IO without page refresh.
+Verify the existing socket listeners on the frontend are working.
+If messages save to DB but don't appear in real time: check that
+the frontend chat component is connected to Socket.IO and
+listening for 'new_message' events.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 4 — ADMIN CMS: HERO IMAGES NOT UPDATING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-4-Complete: Hero Images Updating"
+
+The admin saves image links/URLs for hero section featured stores
+but the customer website is not showing those images.
+
+Step 1 — Find where admin saves hero image data:
+Look in admin Website Management > Hero Section.
+Find the API endpoint that saves this data:
+PATCH /api/admin/settings/hero OR POST /api/admin/cms/hero
+(or whatever the endpoint is named)
+Add a console.log to confirm data is being saved to the database.
+
+Step 2 — Find where customer website reads hero data:
+Look in the customer website hero section component.
+Find where it fetches hero data from the API:
+GET /api/settings/hero OR GET /api/cms/hero OR GET /api/site-settings
+Add a console.log to see what data is returned.
+
+Step 3 — Find the disconnect:
+Common causes:
+A — The frontend is using hardcoded/static image paths instead of
+    reading from the API response. Fix: replace static src with
+    the dynamic value from the API.
+B — The API is saving data but the frontend query has a stale
+    cache (React Query cache). Fix: invalidate the cache after
+    admin saves, or reduce cache time to 0 for this query.
+C — The image URL format is wrong (relative vs absolute path).
+    Fix: ensure full URLs are saved (https://...) not relative paths.
+D — The component renders before data loads and never re-renders.
+    Fix: add proper loading state and ensure component re-renders
+    when data arrives.
+
+Step 4 — Fix the specific issue found.
+
+Step 5 — Test: admin saves 3 image URLs → navigate to customer
+website → verify the 3 images appear in the hero section →
+verify clicking each image navigates to the correct store page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 5 — TOP PICKS / FEATURED PRODUCTS NOT SHOWING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-5-Complete: Featured Products Showing"
+
+Admin marks a product as featured but it does not appear in the
+Top Picks / Popular Products section on the customer website.
+
+Step 1 — Check the featured products API:
+Find the endpoint that the Top Picks section calls:
+GET /api/products/featured OR GET /api/products?featured=true
+Add console.log to see what it returns.
+
+Step 2 — Check the admin "mark as featured" action:
+When admin toggles a product as featured in the admin portal:
+PATCH /api/admin/products/:id/featured (or similar)
+Verify this actually sets isFeatured = true in the database.
+Add console.log to confirm the DB update is happening.
+
+Step 3 — Check the customer website component:
+Find the Top Picks component.
+See if it is:
+A — Calling the correct API endpoint
+B — Actually rendering the returned products
+C — Possibly filtering out products due to a wrong condition
+    (e.g. requiring both isFeatured AND some other flag)
+
+Step 4 — Fix the specific disconnect:
+If the API returns correct data but component doesn't render:
+Fix the component rendering logic.
+If the API returns wrong/empty data: fix the query.
+If the admin toggle doesn't update the DB: fix the endpoint.
+
+Step 5 — Ensure only approved + featured products show:
+The Top Picks query must filter:
+WHERE isFeatured = true AND isApproved = true
+AND store's storeStatus = 'approved' AND store's showOnWebsite = true
+
+Step 6 — Test: admin marks 3 products as featured →
+navigate to customer website → verify those 3 products appear
+in the Top Picks section in the correct order.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 6 — EID SPECIALS PAGE CONTENT EDITABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-6-Complete: Eid Specials Editable"
+
+6A — Make these 3 card sections editable in admin:
+
+Section 1: "Eid Packages" cards
+Section 2: "Plan your Qurbani tips" cards  
+Section 3: "Stores taking Eid orders" cards
+
+For each section, in admin portal under
+Website Management > Eid Specials:
+
+Add an editor that allows admin to:
+- Edit the title of each card
+- Edit the description/body text of each card
+- Edit the image of each card (URL input or upload)
+- Add new cards to each section
+- Delete cards from each section
+- Reorder cards by drag or up/down buttons
+
+Store each section's cards as a JSON array in the site settings
+or existing CMS storage. Example structure:
+{
+  "eidPackages": [
+    { "id": 1, "title": "...", "desc": "...", "image": "...", "active": true }
+  ],
+  "qurbaniTips": [ ... ],
+  "eidStores": [ ... ]
+}
+
+6B — Eid Stores section — admin selects which stores appear:
+The "Stores taking Eid orders" section should show stores that
+admin has specifically selected/approved for Eid.
+
+In admin Eid Specials editor:
+- Show a list of ALL approved stores
+- Each store has a toggle: "Include in Eid Specials"
+- Admin enables the stores that are offering Eid services
+- Only enabled stores appear in this section on the customer website
+
+Add a field to the store record: isEidEnabled (boolean, default false)
+OR store the list of eid-enabled store IDs in site settings JSON.
+Use whichever approach fits better with the existing schema.
+
+Customer website Eid page:
+- "Stores taking Eid orders" section fetches:
+  GET /api/stores?eidEnabled=true
+  Shows only stores where isEidEnabled = true AND storeStatus = 'approved'
+
+6C — Customer website renders dynamic content:
+Find the Eid Specials page component (/eid-specials).
+Replace all hardcoded card content with data fetched from:
+GET /api/cms/eid-specials (or equivalent settings endpoint)
+Ensure proper loading state while data fetches.
+Ensure graceful fallback if a section has no cards (hide that section).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 7 — FOOTER CONTACT INFO TAB POSITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Checkpoint: "Fix-7-Complete: Footer Layout Fixed"
+
+The contact info section in the footer is appearing below the
+other footer columns instead of aligned alongside them.
+
+Find the footer component.
+The footer likely uses a CSS grid or flexbox layout for columns.
+The contact info column is either:
+A — Outside the grid/flex container (placed after closing tag)
+B — Has a style forcing it to full width (width: 100% or similar)
+C — Has a CSS class that breaks it to a new line
+
+Fix:
+- Make sure the contact info column is INSIDE the same grid/flex
+  container as the other footer columns
+- Remove any width: 100% or flex-basis: 100% on that column
+- The footer columns should all be in ONE row on desktop screens
+- On mobile (below 768px): columns can stack vertically — that is correct
+
+Do NOT change any other footer styling, colors, or content.
+Only fix the layout so contact info sits in the same row as
+the other footer columns on normal desktop/laptop screens.
+
+After fixing: verify footer looks correct on:
+- Large desktop (1440px+)
+- Normal laptop (1280px)
+- Tablet (768px)
+- Mobile (375px)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GENERAL RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Fix ONE issue at a time. Stop after each. Wait for confirmation.
+- Create a named checkpoint after every fix.
+- Do NOT change any working feature, design, or layout.
+- Do NOT rewrite entire files — make surgical targeted changes only.
+- Add console.log statements to diagnose before fixing.
+- Remove debug console.logs after fix is confirmed working.
+- If a fix requires touching a shared component used by multiple
+  pages: be extra careful to not break other pages that use it.
+- Test every fix before creating the checkpoint.

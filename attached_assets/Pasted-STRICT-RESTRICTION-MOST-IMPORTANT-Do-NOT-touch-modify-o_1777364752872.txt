@@ -1,0 +1,37 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. Hero Section Stats — Make Real Time & Dynamic
+The stats currently showing in the Hero section are static. Make them fully dynamic and real time:
+
+Certified Stores → show the actual count of approved/active stores in the system in real time.
+Products Available → show the actual total count of all products across all stores in real time.
+Express Pickup (60s) → remove this stat completely.
+In place of Express Pickup, add a Reviews stat → show the actual total count of approved reviews in the system in real time.
+
+
+2. Footer — Add Terms of Service Page
+Add a Terms of Service page to the system and link it properly in the Footer. The page should be clean, professional, and properly formatted.
+Also in the Footer:
+
+Remove the Help Center tab/link.
+Remove the Send a Message button.
+
+
+3. Replace Email Address System-Wide
+Everywhere in the entire system where numafreshmarket@gmail.com is used — in any portal, any page, any section, any footer, any contact info, any email field — replace it with:
+numasetup@gmail.com
+
+4. Separate URLs for Each Portal
+Currently all portals may be accessible from the same base URL. Separate them so each has its own distinct URL while remaining fully synced and functional:
+
+Customer Website → main domain / root URL (e.g. / or the primary domain)
+Store Owner Portal → a separate URL such as /store-portal or /seller
+Admin Panel → already at /admin — keep as is
+
+All three must remain fully in sync in real time — data, orders, chats, reviews, everything must continue to work exactly as before. No functionality should be affected. Only the URL entry points are being separated.
+
+5. Login Pages — Remove Highlighted Elements
+Screenshots of the Customer Login, Store Owner Portal Login, and Admin Panel Login will be shared separately. Whatever elements are highlighted in those screenshots must be removed from each respective login page. (Screenshots to be attached by the user — implement removals once received.)
+
+Again — do not touch anything that is already working. Only implement the five points listed above.

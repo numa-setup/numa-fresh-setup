@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "5HaEeU5EX9pcwln2fMNj3"
+uri = "file://Numa-Fresh-SRS-v2.docx"
+type = "word_document"
+title = "Numa Fresh — SRS v2 (Annotated)"
+
+[[outputs]]
+id = "4WobupY89Uds-YMNiI0Lq"
+uri = "file://Numa-Fresh-SRS-v2.pdf"
+type = "pdf"
+title = "Numa Fresh SRS v2 — Blank Page Removed"

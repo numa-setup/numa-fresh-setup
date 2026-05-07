@@ -1,0 +1,52 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. Reviews System — Full Implementation
+Build a complete, real-time, dynamic reviews system across the entire platform.
+
+A. Who Can Write Reviews & Where
+Customers can write reviews for:
+
+The overall platform/system (shown in the "Loved by the Community" section on the client website homepage)
+A specific store (shown on that store's detail page)
+A specific product (shown on that product's detail page)
+
+Store Owners can write reviews for:
+
+The overall platform/system only
+
+
+B. Where Customers & Store Owners Submit Reviews
+
+There must be a proper, dedicated section or page where customers and store owners can write and submit their review.
+The review form should include: star rating, written review, reviewer name (auto-filled if logged in).
+After submission, the review goes to the Admin Panel for approval — it must NOT appear publicly until admin approves it.
+
+
+C. Admin Panel — Review Management
+In the Admin Panel, there must be a dedicated Reviews Management section where the admin can:
+
+See all submitted reviews (platform reviews, store reviews, product reviews) in one place.
+Approve a review → it becomes visible publicly on the relevant page.
+Reject/Delete a review → it is removed and never shown publicly.
+For platform reviews specifically, admin can choose to feature a review in the "Loved by the Community" section on the homepage.
+
+
+D. Where Approved Reviews Display
+
+Platform reviews (featured by admin) → shown in "Loved by the Community" section on the client website homepage.
+Store reviews (approved by admin) → shown on that store's detail page.
+Product reviews (approved by admin) → shown on that product's detail page.
+
+All review displays must be real time — as soon as admin approves, it appears live.
+
+2. Customer Chat — Enable Properly
+The chat option for customers is still not enabled. This must be fixed and made fully functional.
+
+Customers must be able to initiate a chat — either with the store or with support.
+The chat must work in real time.
+Store owners must receive and respond to customer chats from their Store Owner Portal.
+All existing chat UI and infrastructure already in the system must be used — just make sure it is properly connected and enabled for customers.
+
+
+Again — do not touch anything that is already working. Only implement the two points listed above.

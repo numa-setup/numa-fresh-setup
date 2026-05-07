@@ -1,0 +1,66 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only fix exactly what is described below — nothing more, nothing less.
+
+Critical Bug — Replit Preview vs Published URL Data Inconsistency
+There is a major data sync issue in the system. The Replit internal editor preview and the published project URL (https://numa-project.replit.app/) are showing different stores and different data — they are not in sync.
+This means the system is likely using two separate data sources — one for the preview environment and one for the production/published environment. Any changes or additions made in one environment are not reflecting in the other.
+
+Fix Required:
+
+Identify why the two environments are pointing to different databases or different data sources.
+Fix the configuration so that both the Replit internal preview and the published URL use the exact same single database.
+After the fix, any store, product, or data added from either environment must appear identically in both places — in real time.
+Any fixes or changes made going forward must reflect in both environments simultaneously.
+Do not cause any data loss — all existing stores and products must be preserved.
+
+
+Root Cause to Investigate:
+
+Check if there are separate environment variables pointing to different databases for dev vs production.
+Check if the app is using a local/in-memory database in preview mode instead of the persistent production database.
+Check if there are conditional database connections based on environment that are causing the split.
+Consolidate everything into one single persistent database used by both environments.
+
+
+Again — do not touch anything already working. Only fix this data sync issue between the two environments.You said: /seller py abhi sirf store owner k login ka option aa raha hy lakin yahi SignUp ka option b aana chahey agar ksi ka store phly create ni howa wa to/seller py abhi sirf store owner k login ka option aa raha hy lakin yahi SignUp ka option b aana chahey agar ksi ka store phly create ni howa wa to
+jesy /login py hmare pass neechy create account ka option aur continue with google aa raha hy  isi tarah /seller py b ye cheezyn hooni chahey k agar phly se account ni hy to account create karny ya continue with google ka option ana chaheylakin 1 issue ye hy k jbb /login se hmm create account py click karty hyn to 
+I am a customer aur Store owner ka 2 options aa rahy hyn ye ni aany chahey kewn k ab ye sirf customer k liy hi hy store owner ka ab alag system ho gya hy wo /seller py open ho ga wahi py neechy create account ka option ho ga store owner k liyus k ilawa tamam login aur signup ka design same hoona chahey requirements alag alag ho sacti hyn but design sameJo jo cheezyn meny phly login screen se remove karwai thi wo signup page py b ni hooni chahey jese Numa Fresh ka logo aur name thaBut aap tamam screens py relavent heading zaroor add kar dyn jis se thora idea hoona chahey k partcular screen kis ki hyUs k ilawa aap ko phly b kaha hy k jbb Order place button py click kar k order place successfully ho jata hy to us k baad confirmation popup ya kuch b aesa message aana chahey jis se pata chaly k order successfully place ho gya hyCustomer website k footer me jo list your store wala option hy us py hmare /seller wala signup ya create account wala page open hoona chahey
+Aur Customer website k footer me List your business k neechy jo Store portal ka option hy waha My Account ka option hoona chahey kewn k Customer ka koi portal ni hy hmare system meUs k ilawa Customer website k footer me jo Contact Us ka option hy Terms of services k neechy wala us py click karny se hmare pass jo Contact Us ka section hy us py navigate hoona chaheyShow more9:37 PM2 / 2Claude responded: Here's the detailed Replit prompt in English:Here's the detailed Replit prompt in English:
+
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. /seller Page — Add Signup / Create Account Option
+Currently /seller only shows the Store Owner login. Add the following to this page:
+
+Create Account option for new store owners.
+Continue with Google option.
+Design must be exactly the same as the /login page — only the content/requirements differ.
+Add a clear, relevant heading on this page so it is obvious this is the Store Owner portal (e.g. "Store Owner Portal" or "Seller Account").
+
+
+2. /login Page — Remove "I am a Customer / Store Owner" Options
+When a customer clicks "Create Account" on the /login page, it currently shows two options: "I am a Customer" and "Store Owner".
+Remove the Store Owner option from here completely — since Store Owners now have their own separate signup at /seller. The /login create account flow should be for customers only.
+
+3. All Login & Signup Screens — Consistent Design
+All login and signup screens across all portals (Customer /login, Store Owner /seller, Admin /admin) must have the same design/layout. Requirements and fields can differ but the visual design must be consistent.
+Also — whatever elements were previously removed from the login screen (such as Numa Fresh logo and name) must also be removed from all signup screens as well. But add a clear relevant heading on every screen so users know which portal they are on.
+
+4. Order Placement — Confirmation Message
+This was requested before but is still not implemented. When a customer clicks "Place Order" and the order is successfully placed, a confirmation popup or message must appear clearly stating that the order has been placed successfully. This must work properly.
+
+5. Footer — "List Your Store" Link Fix
+In the Customer Website footer, the "List Your Store" option must link to the /seller page (the Store Owner signup/create account page) — not anywhere else.
+
+6. Footer — Fix "List Your Business" Section
+In the Customer Website footer, under "List Your Business":
+
+Remove the Store Portal option.
+Add a My Account option in its place — since customers do not have a separate portal, this should link to the customer's account/profile page.
+
+
+7. Footer — "Contact Us" Link Fix
+In the Customer Website footer, the "Contact Us" option (below Terms of Services) must navigate/scroll directly to the Contact Us section on the homepage — not open a separate page.
+
+Again — do not touch anything already working. Only implement the seven points listed above.

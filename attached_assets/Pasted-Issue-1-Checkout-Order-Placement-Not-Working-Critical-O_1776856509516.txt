@@ -1,0 +1,39 @@
+Issue 1 — Checkout & Order Placement Not Working (Critical)
+On the customer website, the checkout function is completely broken. When a customer clicks the "Go to Checkout" button, nothing happens at all. Please investigate and fix this issue completely.
+Additionally, when an order is successfully placed by a customer, the Store Owner Portal must receive that order in real time. Make sure the order flow works end to end — from customer placing the order to store owner receiving it.
+
+Issue 2 — Product Images Not Displaying Correctly
+When a product is added from either the Store Owner Portal or the Admin Portal, and an image link is pasted or an image is attached during product creation, that image is not showing on the product card.
+Furthermore, when the product detail page is opened, a random unrelated image is showing instead of the actual product image.
+Please fix this so the real product image is displayed correctly on both the product card and the product detail page.
+
+Issue 3 — Product Detail Page Missing Full Information
+When adding a product, there should be an option to add complete product details including:
+
+Full description
+Usage instructions
+Ingredients
+Any other relevant detail fields
+
+All of this information must be displayed on the product detail page when a customer views that product.
+
+Issue 4 — Store Opening Hours Not Showing on Customer Website
+On the customer website, the store detail page is not showing opening hours — even though the store owner selects opening hours during store setup, and those hours were previously visible in the admin approval view.
+Please fix this so opening hours are correctly fetched and displayed on the store detail page on the customer website.
+
+Issue 5 — Store Detail Page Not Showing Complete Dynamic Data
+The store detail page on the customer website is not displaying all the data that the store owner provides during setup. All of the following fields must be fetched and displayed dynamically on the store detail page:
+
+Store Tagline
+Branch
+Google Map Location
+Services & Operations
+Amenities
+Minimum Order
+Convenience Fee
+Prep Time
+Opening Hours
+Store Owner Info
+Any other data submitted during store setup
+
+This data is already visible in the admin approval panel, so it exists in the system — it just needs to be properly pulled through and displayed on the store's public detail page on the customer website.

@@ -1,0 +1,93 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Do NOT cause any data loss. Only work on exactly what is listed below — nothing more, nothing less.
+
+1. Chat Notifications & Real-Time Messages — Fix Completely
+
+Messages must appear instantly without any page refresh in the chat dialog box — across all portals (Customer Live Chat, Store Owner Support Chat, Admin Direct Messages).
+When a new message is received, a notification badge/count must appear on the bell icon in the header.
+The chat conversation list must also show an unread message badge on the specific chat that has a new message.
+Clicking the notification must open that specific chat directly.
+Use WebSockets or real-time listeners — no polling, no refresh required.
+
+
+2. Cart Page — Remove Discount Offer Section & Promo Code
+
+Remove the Discount Offer / Buy $50 Get $5 Off section from the cart page completely.
+Remove the Promo Code input/section from the cart page completely.
+
+
+3. "Use My Location" / Browse by Location — Fix with Google Maps API
+
+The current city dropdown must be replaced with a Google Maps location picker so users can search or select any city or area.
+When a user's location is detected or selected, show stores that are geographically nearest to that location from the system's listed stores.
+Distance is not a strict filter — just show the closest available stores from whatever is listed in the system.
+If location permission is granted, auto-detect the user's city and show nearby stores immediately.
+
+
+4. Home Delivery — Require Complete Address
+When a customer selects Home Delivery in the checkout/order flow, entering a complete address must be mandatory before the order can be placed. This must include:
+
+Full address fields.
+Live location / map pin option.
+Order must not proceed without a valid complete address for home delivery.
+
+
+5. Place Order — Fix & Add Confirmation Popup
+
+Place Order is currently not working — fix this completely so orders are placed successfully.
+After a successful order placement, show a confirmation popup clearly stating the order has been placed successfully.
+This has been requested before — make sure it is properly implemented this time.
+
+
+6. Order Card — Click to Open Order Detail
+Clicking anywhere on an order card in My Orders must open that order's full detail page. This must work properly.
+
+7. Reorder — Same Store Logic
+When a customer clicks Reorder, all products must be re-added to cart from the exact same store the original order was from. No cross-store mixing.
+
+8. Multi-Store Cart — Separate Orders Per Store
+If a customer adds products from multiple stores into the cart and places an order:
+
+Each store's products must be placed as a separate individual order.
+Each store must only receive their own store's products — not products from other stores.
+This must be handled automatically at the time of order placement.
+
+
+9. Mobile Responsiveness — Fix All Issues
+Fix all mobile responsiveness issues across the entire system. Specific issues identified:
+Notifications:
+
+The notification card that opens is going off-screen to the left — content is missing/cut off. Fix so the notification panel is fully visible and properly contained within the screen on mobile.
+
+Hamburger Menu / My Account:
+
+On mobile, the hamburger icon is not working properly.
+In My Account, only the Profile tab is visible — all other tabs (Addresses, Notifications, Saved Items, Scheduled Orders, Live Chat, My Orders) are missing on mobile.
+All tabs must be accessible from the hamburger menu on mobile and must be fully functional.
+
+Live Chat — Mobile View:
+
+On mobile, the chat screen currently shows both the conversation list and the chat detail side by side — this is wrong for mobile.
+On mobile, first show only the conversations list.
+When a conversation is tapped, open only that chat's detail/message page — full screen.
+Going back returns to the conversations list.
+This is the same pattern as WhatsApp mobile — implement exactly this behavior.
+
+My Orders Page:
+
+The "Details" button on order cards is overflowing outside the card boundary on mobile. Fix so all buttons fit properly within the card on all screen sizes.
+
+General Mobile Audit:
+
+Review the entire system on mobile view and fix any screen where:
+
+Content is cut off or overflowing.
+Design is broken or elements are overlapping.
+Horizontal scrolling is occurring — this must be eliminated everywhere on mobile as it damages user experience.
+Buttons, text, or cards are not properly sized for mobile screens.
+Any functionality is missing or broken on mobile that works on desktop.
+
+
+
+
+Again — do not touch anything already working. Do not cause any data loss. Only implement the points listed above.

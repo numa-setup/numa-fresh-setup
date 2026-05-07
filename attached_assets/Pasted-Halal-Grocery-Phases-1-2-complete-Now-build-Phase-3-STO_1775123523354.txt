@@ -1,0 +1,294 @@
+Halal Grocery — Phases 1-2 complete.
+Now build Phase 3: STORE FULFILLMENT PORTAL (/store-portal)
+
+This portal is used by store owners and staff on:
+- Android tablet (primary device in store)
+- Desktop browser (store management)
+
+Design: Tablet-first. Large touch targets (min 48px).
+Big fonts. Simple navigation. Works offline (service worker
+caches critical assets, syncs when back online).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORE ONBOARDING (/store-portal/onboarding)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Multi-step wizard. Save progress between sessions.
+
+Step 1: Business Info
+- Store name (EN + Urdu optional)
+- Phone, email
+- Full address (Google Maps pin)
+- Logo upload + banner upload (Cloudinary)
+- Description
+
+Step 2: Halal Certification
+- "Is your store Halal Certified?" toggle
+- If yes: cert number, issuing body, expiry date, cert doc upload
+- "Certification will be verified by admin"
+- Gold halal badge preview shown
+
+Step 3: Operating Hours
+- Per day of week: open/closed toggle + from/to time
+- Holiday hours option
+- Pickup slot duration (15/30/45/60 min)
+- Max orders per slot
+
+Step 4: Services
+- Pickup available: YES/NO
+- Curbside available: YES/NO (+ set curbside fee)
+- Delivery available: YES/NO (+ set delivery fee + radius)
+- Minimum order amount
+
+Step 5: Fees
+- Convenience fee (pre-filled from platform default)
+- Commission rate (read-only — set by admin: 7%)
+
+Step 6: Banking (Stripe Connect)
+- "Connect your bank for payouts" button
+- Redirect to Stripe Connect onboarding
+- Return: show connected status
+
+Step 7: Review & Submit
+- Summary of all info
+- Submit for admin approval
+- Status: "Pending Review — We'll notify you in 24-48 hours"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORE DASHBOARD (/store-portal)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Real-time — Socket.io keeps everything live.
+
+Top bar (always visible):
+- Store name + logo
+- "OPEN" / "CLOSED" toggle (manual override)
+- Current time + today's date
+- Notification bell with count
+- Staff name
+
+Main layout (2 columns on tablet):
+
+LEFT: LIVE ORDER QUEUE
+Incoming orders appear here in real-time.
+New order → alert sound + notification + card slides in.
+
+Order Card (large, touch-friendly):
+┌─────────────────────────────────┐
+│ #HG-2847          EXPRESS PICKUP│
+│ 25 min ago        Slot: 3:00 PM │
+│ ─────────────────────────────── │
+│ 🥩 Boneless chicken 1kg (custom)│
+│ 🌶️ Shan Biryani Masala x2      │
+│ 🥛 Milk 2L                     │
+│ ─────────────────────────────── │
+│ Estimated: $47.50               │
+│                                 │
+│  [ACCEPT ✓]      [DECLINE ✗]   │
+└─────────────────────────────────┘
+
+When accepted → moves to ACTIVE ORDERS section
+Decline → requires reason selection
+
+RIGHT: TODAY'S STATS
+- Pending: X orders
+- In Prep: X orders  
+- Ready: X orders
+- Completed today: X
+- Revenue today: $XXX
+- Avg prep time: XX min
+
+ACTIVE ORDERS (below queue):
+Cards showing in-progress orders with status + timer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ORDER PROCESSING (/store-portal/orders/[id])
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Full-screen, tablet-optimized order view.
+
+HEADER:
+- Order number + type badge + timestamp
+- Customer name
+- Pickup slot time (countdown timer if < 30 min)
+- "Back to Dashboard" button
+
+STATUS BAR:
+[Confirmed] → [In Preparation] → [Ready] 
+Large, obvious buttons to advance status
+
+ITEM CHECKLIST (main content):
+Each item is a large touch card:
+
+For PACKAGED items:
+┌─────────────────────────────────┐
+│ [Product image]                 │
+│ Shan Biryani Masala 100g  x 2  │
+│ Substitution: Replace Similar   │
+│                                 │
+│ [✓ FOUND] [✗ OUT OF STOCK]     │
+│ [↔ SUBSTITUTE] [📞 CALL FIRST] │
+└─────────────────────────────────┘
+
+When "Out of Stock" pressed:
+- If sub pref = "Replace Similar": show similar products
+  Staff selects replacement → sends to customer for approval
+- If sub pref = "No Replacement": auto-remove, notify customer
+- If sub pref = "Contact First": 
+  Opens in-app chat + call button to customer
+
+For FRESH MEAT items:
+┌─────────────────────────────────┐
+│ 🥩 FRESH MEAT — CUT TO ORDER   │
+│ Chicken — Boneless              │
+│ Estimated: 1kg @ $8.99/kg = ~$9│
+│                                 │
+│ Customer Instructions:          │
+│ "Wash and cut into 8 pieces,   │
+│  marinate with lemon"           │
+│                                 │
+│ Actual weight: [____] kg        │
+│ Final price:   $___.__          │
+│                                 │
+│ [✓ WEIGHED & PACKED]           │
+└─────────────────────────────────┘
+
+Staff enters actual weight → system calculates final price
+Updates Stripe PaymentIntent to capture final amount.
+
+SUBSTITUTION HANDLING:
+When staff requests substitution:
+- Customer notification sent (push + SMS)
+- 5-minute timer shown (auto-proceed if no response)
+- Chat panel opens for communication
+
+FINAL SUMMARY:
+When all items handled (found/substituted/removed):
+Large "FINAL SUMMARY" button → shows:
+- All items with final statuses
+- Any substitutions made
+- Removed items
+- Meat items with actual weights
+- Final total breakdown
+- "SEND TO CUSTOMER FOR REVIEW" button
+  → Customer sees this summary, must confirm
+  → Then staff presses "MARK AS READY"
+
+ORDER READY:
+- Customer gets push + SMS notification
+- QR code displayed on store's tablet
+- For curbside: shows vehicle info card prominently
+  (Make/Model/Color/Plate in big text)
+
+PRINT ORDER SLIP:
+- "Print Slip" button → thermal printer
+- 2 slips generated:
+  Slip 1: Main order (all items, totals)
+  Slip 2: Meat counter slip (only meat items with cut details)
+
+CURBSIDE "I'M HERE" RECEIVED:
+- Alert pops on screen: "Customer has arrived!"
+- Vehicle info shown (Make: Toyota / Model: Camry / Color: Blue)
+- Plate: ABC-1234
+- "Order Delivered to Vehicle" button
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRODUCT MANAGEMENT (/store-portal/products)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Category tabs + product grid.
+
+Bulk actions:
+- Select multiple → Mark out of stock / Activate / Deactivate
+
+Add/Edit Product drawer:
+- Name (EN + Urdu optional)
+- Product Type (PACKAGED / FRESH_MEAT / PRODUCE / etc.)
+- Category + Subcategory (pre-defined halal categories)
+- Price + Compare Price
+- Unit (kg / g / lb / piece / pack / litre)
+- Stock quantity + low stock threshold
+- Images (up to 5, drag-and-drop upload)
+- Barcode / SKU
+- For fresh meat ONLY:
+  * Animal type (Chicken/Beef/Lamb/Goat/Veal)
+  * Available cuts (multi-select)
+  * Price per kg
+  * Estimated weight range
+- Nutrition facts (accordion)
+- Freshness label (e.g., "Cut this morning")
+- Halal certified toggle
+- Featured toggle
+- SEO: meta title + description (auto-generated from name)
+- Save
+
+CSV Import:
+- Download template button
+- Upload CSV → preview → import
+- Error report for failed rows
+
+Inventory Alerts:
+- Red badge on products near/at 0 stock
+- "Mark Out of Stock" quick action
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANALYTICS (/store-portal/analytics)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date range picker: Today/Week/Month/Custom
+
+Charts (Recharts):
+- Revenue over time (line chart)
+- Orders volume (bar chart)
+- Peak hours heatmap (7 × 24 grid)
+- Top 10 products (horizontal bar)
+- Order type breakdown (pie: pickup/curbside/delivery)
+- Avg prep time trend
+- Cancellation reasons (donut)
+
+Metric cards:
+Total Revenue | Orders | Avg Order Value | Repeat Rate | Rating
+
+Export: CSV or PDF report
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAYOUTS (/store-portal/payouts)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Gross revenue this period
+- Platform commission (7% shown explicitly)
+- Net payout amount
+- Payout schedule (weekly/bi-weekly)
+- Payout history table
+- "Request Early Payout" button (if eligible)
+- Stripe Connect dashboard link
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STORE PORTAL APIs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GET    /api/store/dashboard
+GET    /api/store/orders?status=pending
+GET    /api/store/orders/[id]
+PATCH  /api/store/orders/[id]/confirm
+PATCH  /api/store/orders/[id]/reject
+PATCH  /api/store/orders/[id]/status
+PATCH  /api/store/orders/[id]/item-status
+PATCH  /api/store/orders/[id]/meat-weight
+POST   /api/store/orders/[id]/substitution-request
+POST   /api/store/orders/[id]/final-summary
+POST   /api/store/orders/[id]/mark-ready
+POST   /api/store/orders/[id]/curbside-delivered
+POST   /api/store/orders/[id]/verify-qr-scan
+POST   /api/store/chat/[orderId]/message
+GET    /api/store/products
+POST   /api/store/products
+PUT    /api/store/products/[id]
+DELETE /api/store/products/[id]
+POST   /api/store/products/bulk-import
+PATCH  /api/store/products/[id]/stock
+GET    /api/store/analytics
+GET    /api/store/payouts
+GET    /api/store/settings
+PUT    /api/store/settings
+GET    /api/store/pickup-slots
+POST   /api/store/pickup-slots/generate
+
+Socket.io events (store namespace):
+Server → Store: new_order, order_cancelled, 
+  substitution_response, customer_arrived, chat_message
+Store → Server: order_status_update, item_update, 
+  meat_weight_entered, ready_notification, chat_message

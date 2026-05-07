@@ -1,0 +1,69 @@
+STRICT RESTRICTION — MOST IMPORTANT:
+Do NOT touch, modify, or disturb anything that is already working in the system. Only work on exactly what is listed below — nothing more, nothing less. Do NOT cause any data loss.
+
+1. Remove Urdu & Other Non-English Language Options — System Wide
+When adding a product, remove the "Urdu Name" field completely. Also remove every other non-English language field or option from the entire system — every portal, every form, every page. Only English language fields should remain.
+
+2. Store Categories → Product Category Dropdown Sync
+When a Store Owner adds a product to their store, the category dropdown must show the exact same categories that were added during that store's setup — not static, hardcoded, or random categories. Each store's product category options must come from that specific store's own defined categories.
+
+3. Real-Time Messaging — Fix Across All Portals
+Currently messages only appear after a manual page refresh. Fix this so messages are delivered and received instantly in real time without any refresh — across all three portals:
+
+Customer Account → Live Chat
+Store Owner Portal → Support → Live Chat
+Admin Portal → Live Chat → Direct Messages
+
+Use WebSockets or real-time listeners to push messages instantly to the receiver as soon as they are sent.
+
+4. Notification System — Full Implementation
+Add a bell icon in the header of every portal (Customer, Store Owner, Admin). This bell icon must:
+
+Show a badge/count for unread notifications.
+When clicked, show a dropdown list of all notifications.
+Each notification must be clickable and navigate directly to the relevant section:
+
+Message notification → opens that specific chat.
+Order accepted/ready/pickup/delivered → opens order tracking page.
+Any other operation → navigates to its relevant page.
+
+
+Once a notification is viewed/clicked, its badge must be removed (marked as read).
+
+Notifications must be sent to the relevant user for every important operation in the system — including but not limited to:
+
+New message received.
+Order placed, accepted, ready, picked up, delivered.
+Store approved/rejected by admin.
+New review submitted/approved.
+Any other significant system event.
+
+Everything must be fully dynamic and real time across all portals.
+
+5. Fix Session Sharing Bug — Critical Security Issue
+Currently, if a user is logged in on one browser tab and someone opens the same URL in another tab or browser, they appear as already logged in with the same account. This must be fixed immediately.
+
+Every new visitor to the URL must start as a guest/logged out by default.
+Sessions must be isolated — one person's login must never carry over to another person opening the same link.
+This applies to all portals: Customer, Store Owner, and Admin.
+
+
+6. Browse by Location — Fix & Enhance
+The Browse by Location section is currently not working — it shows "No Stores Found" even when stores exist at that location. Fix this completely.
+Additionally, enhance it with the following:
+
+Fix real-time location detection so nearby stores actually appear when location is granted.
+Add an option for the user to manually select a location themselves (not just auto-detect).
+Add an option to open Google Maps to browse stores visually on the map.
+
+
+7. Store Owner — Order Item Checklist: Fix Product Images
+In the Store Owner Portal, when an order is received and the Item Checklist is shown, all products are displaying the same image regardless of which product it is. Fix this so each product in the checklist shows its own correct real image.
+
+8. Cart Page — Remove Offers Badge/Section & Fix Place Order Button Position
+
+Remove the Offers badge or section from the cart page completely.
+Move the "Place Order" button so it appears directly after the Order Summary section — not fixed/sticky at the bottom of the screen at all times.
+
+
+Again — do not touch anything already working. Do not cause any data loss. Only implement the eight points listed above.
