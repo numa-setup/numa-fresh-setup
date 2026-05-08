@@ -1,0 +1,344 @@
+Make sure:
+- All functions use process.env.RESEND_FROM_EMAIL
+- All functions use process.env.RESEND_API_KEY
+- No hardcoded emails are used
+- Every email send uses verified domain
+
+### Task 1.4: Test Email Sending
+After updating all functions:
+- Send a test OTP to your email
+- Verify OTP email arrives
+- Check that email is FROM: noreply@nf.yashigarments.com
+- Test sending OTP to different email addresses
+- All OTP emails should work now
+
+=================================
+
+## SECTION 2: RESTORE MY ACCOUNT TAB IN FOOTER
+
+### Current Issue:
+- "My Account" tab was REMOVED from Footer's "For Businesses" section
+- This tab MUST be restored
+
+### Task 2.1: Locate Footer Component
+Find footer file in your project:
+- Look in: src/components/, src/layout/, components/ directory
+- File names: Footer.jsx, footer.jsx, Footer.js, footer.js, etc.
+
+### Task 2.2: Locate "For Businesses" Section
+Find the section that contains "For Businesses"
+Look for tabs or links related to business features
+
+### Task 2.3: Restore "My Account" Tab
+Inside "For Businesses" section, add "My Account" tab back with two buttons:
+1. "Sign In" button
+2. "Create Account" button
+
+The tab should be visible and styled like other footer tabs
+
+### Task 2.4: Add Functionality to Buttons
+- "Sign In" button: Click → Opens passwordless OTP popup (NO new page)
+- "Create Account" button: Click → Opens passwordless OTP popup (NO new page)
+- Both buttons should trigger the same popup component used by header buttons
+
+=================================
+
+## SECTION 3: PASSWORDLESS OTP POPUP AUTHENTICATION
+
+### Current State:
+Popup should already exist in your project. If it doesn't, CREATE IT.
+
+### Task 3.1: Ensure Popup Component Exists
+The popup must have:
+- Email/Phone input field
+- "Send OTP" button
+- OTP input field (appears after OTP sent)
+- "Verify OTP" button
+- Additional info fields for signup (name, phone, etc.)
+- Close button (X)
+- Works as overlay popup (NOT new page)
+
+### Task 3.2: Ensure All Buttons Open Popup
+These buttons/links should open the popup when clicked:
+1. Header: "Get Started" button → Opens signup popup
+2. Header: "Sign In" button → Opens signin popup
+3. Footer: "Create Account" button → Opens signup popup
+4. Footer: "My Account" → "Sign In" → Opens signin popup
+5. Footer: "My Account" → "Create Account" → Opens signup popup
+6. Footer: "Support" → "Contact Us" → Opens signin popup
+
+### Task 3.3: Popup Behavior
+- Clicking button opens popup
+- User enters email
+- OTP is sent via Resend (using verified domain from secrets)
+- User verifies OTP
+- For signup: User enters additional info
+- Account is created/User is logged in
+- Popup closes
+- User redirected to dashboard or appropriate page
+
+=================================
+
+## SECTION 4: DIRECT URL ROUTES
+
+### Task 4.1: Sign In Routes
+These URLs should open FULL PAGE (not popup):
+- /login → Sign In page
+- /signin → Sign In page
+
+Both routes redirect to same page showing passwordless OTP form
+
+### Task 4.2: Create Account Routes
+These URLs should open FULL PAGE (not popup):
+- /create-account → Create Account page
+- /sign-up → Create Account page
+- /get-started → Create Account page
+
+All three routes redirect to same page showing passwordless OTP form
+
+=================================
+
+## SECTION 5: FOOTER CONTACT SECTION - TAB HEIGHTS
+
+### Task 5.1: Fix Tab Height Spacing
+In footer, find these two sections:
+
+Section A - Contact:
+- Email tab
+- Phone tab
+- Location tab
+
+Section B - Support:
+- Privacy Policies tab
+- Terms of Services tab
+- Contact Us tab
+
+### Task 5.2: Make Heights Equal
+The height and spacing of Section A tabs MUST MATCH Section B tabs exactly
+- Same padding
+- Same spacing between tabs
+- Same height for each tab
+- Aligned properly
+
+=================================
+
+## SECTION 6: FOOTER CONTACT LOCATION
+
+### Task 6.1: Make Location Clickable
+In footer Contact section, the "Location" field must be clickable
+
+### Task 6.2: Open Google Maps
+When Location is clicked, it opens Google Map with business location
+- Use your business coordinates
+- Show location marker
+- Allow navigation to location
+
+=================================
+
+## SECTION 7: FOOTER SUPPORT CONTACT US
+
+### Task 7.1: Open Contact Form
+When "Support" → "Contact Us" is clicked, the Contact Us form must open
+- This should be your existing Contact Us form
+- Should NOT open new page
+- Should appear as popup or modal
+
+=================================
+
+## SECTION 8: CHECKOUT PAGE - PROMO CODE
+
+### Task 8.1: Remove Promo Code Section
+On Checkout page, "Review & Pay" section:
+- Find "Promo Code" section/field
+- REMOVE it completely
+- No empty space should remain
+- Layout should adjust properly
+
+=================================
+
+## SECTION 9: PLACE ORDER FUNCTIONALITY
+
+### Current Issue:
+- Place Order function is giving errors
+- Orders cannot be completed
+
+### Task 9.1: Debug and Fix
+Find place order function/endpoint:
+- Look for errors in browser console
+- Check backend logs
+- Identify what's causing failure
+
+### Task 9.2: Fix All Issues
+- Fix database connection issues (if any)
+- Fix validation errors (if any)
+- Fix payment logic (if any)
+- Fix any API endpoint issues
+
+### Task 9.3: Test Place Order
+- Add product to cart
+- Go to checkout
+- Complete all fields
+- Click "Place Order"
+- Order should complete successfully
+- No errors in console
+- Confirmation message appears
+- Order appears in user account
+
+=================================
+
+## SECTION 10: MOBILE VIEW FIXES
+
+### Task 10.1: Place Order Popup - Mobile
+The "Confirm Place Order" popup card on mobile view:
+- Must be fully visible without scrolling
+- Must be responsive
+- Text and buttons must be readable
+- Make popup height and width mobile-friendly
+
+### Task 10.2: Product Images - Mobile
+Product images on mobile view are too large:
+- Reduce image size for mobile screens
+- Images should be proportional to screen width
+- Add responsive CSS for mobile
+- Max-width should be set for mobile devices
+
+=================================
+
+## FINAL VERIFICATION CHECKLIST:
+
+Secrets & Email:
+- [ ] RESEND_API_KEY verified in Replit Secrets
+- [ ] RESEND_FROM_EMAIL verified in Replit Secrets (noreply@nf.yashigarments.com)
+- [ ] RESEND_DOMAIN verified in Replit Secrets (nf.yashigarments.com)
+- [ ] All email functions use process.env.RESEND_FROM_EMAIL
+- [ ] OTP emails send successfully
+- [ ] OTP emails work to any email address
+- [ ] All emails show FROM: noreply@nf.yashigarments.com
+
+Authentication:
+- [ ] Get Started opens popup
+- [ ] Sign In button opens popup
+- [ ] Create Account buttons open popup
+- [ ] My Account tab is restored
+- [ ] My Account buttons open popups
+
+Popup Functionality:
+- [ ] Popup displays properly
+- [ ] Email input works
+- [ ] OTP sending works (uses verified domain)
+- [ ] OTP verification works
+- [ ] Account creation works
+- [ ] Sign in works
+- [ ] Popup closes properly
+- [ ] Mobile responsive
+
+Direct Routes:
+- [ ] /login opens Sign In page
+- [ ] /signin opens Sign In page
+- [ ] /create-account opens Create Account page
+- [ ] /sign-up opens Create Account page
+- [ ] /get-started opens Create Account page
+- [ ] All pages show passwordless OTP form
+
+Footer Issues:
+- [ ] My Account tab visible
+- [ ] Tab heights match between Contact and Support
+- [ ] Location is clickable
+- [ ] Location opens Google Maps
+- [ ] Contact Us form opens from Support section
+
+Checkout & Order:
+- [ ] Promo code section removed from Review & Pay
+- [ ] Place order works without errors
+- [ ] Order confirmation appears
+- [ ] Mobile popup fully visible
+- [ ] Product images responsive on mobile
+
+Final Testing:
+- [ ] No console errors
+- [ ] No build errors
+- [ ] Replit preview shows system
+- [ ] All features working
+- [ ] Mobile view responsive
+- [ ] Desktop view working
+
+=================================
+
+## IMPORTANT NOTES:
+
+1. RESEND SECRETS ALREADY SET:
+   - Do not create new secrets
+   - Just verify existing ones are correct
+   - Integrate them into all email functions
+   - Use process.env to access them
+
+2. MY ACCOUNT TAB:
+   - Was removed, must be restored
+   - Restore with popup buttons
+   - Do not remove again
+
+3. POPUP BEHAVIOR:
+   - All popup triggers should NOT open new page
+   - Popup should overlay on current page
+   - Should be dismissable
+
+4. NO ERRORS:
+   - After completion, zero console errors
+   - Build must succeed
+   - All features must work
+
+5. MOBILE RESPONSIVE:
+   - All popups must work on mobile
+   - Images must scale appropriately
+   - Touch-friendly buttons
+
+=================================
+
+## IF YOU ENCOUNTER ISSUES:
+
+Email Sending:
+- Verify secrets in Replit Secrets panel
+- Verify all functions use process.env.RESEND_FROM_EMAIL
+- Check if secrets were restarted after adding
+- Test with different email addresses
+
+Popup Not Opening:
+- Check for JavaScript errors in console
+- Verify event listeners are attached
+- Check popup component exists in DOM
+- Verify onClick handlers are correct
+
+My Account Tab Missing:
+- Search footer file for "My Account"
+- If not found, must be added back
+- Must have Sign In and Create Account buttons
+
+Place Order Errors:
+- Check browser console for errors
+- Check backend logs
+- Verify database connection
+- Test with valid data
+
+Mobile Issues:
+- Check responsive CSS
+- Test on actual mobile device
+- Verify media queries are working
+- Check popup dimensions on mobile
+
+Replit Preview:
+- Check build output
+- Verify secrets are properly set
+- Check port configuration
+- Restart server if needed
+
+=================================
+
+REMEMBER:
+- Verify secrets are correct and integrated
+- Implement EXACTLY as specified
+- Do not skip anything
+- Fix all errors
+- Test everything
+- Only deploy when 100% working
+
+Good luck! Complete all tasks.

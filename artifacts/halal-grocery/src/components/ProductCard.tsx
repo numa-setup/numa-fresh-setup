@@ -82,7 +82,7 @@ export function ProductCard({ product, storeId, storeSlug, storeName }: ProductC
     <div className={`group relative bg-card rounded-xl sm:rounded-2xl border overflow-hidden transition-all duration-200 hover:-translate-y-0.5 flex flex-col h-full ${qty > 0 ? 'border-primary/40 shadow-md shadow-primary/10' : 'border-border/50 hover:border-border/80 hover:shadow-md'}`}>
       {/* Image area — links to product detail */}
       <Link href={productHref} className="block relative">
-        <div className="relative overflow-hidden bg-muted/20" style={{ aspectRatio: '4/3' }}>
+        <div className="relative overflow-hidden bg-muted/20 max-h-[160px] sm:max-h-none" style={{ aspectRatio: '4/3' }}>
           <img
             src={image}
             alt={product.name}

@@ -63,8 +63,14 @@ expertMode = true
   OTP_EXPIRY_MINUTES = "10"
   OTP_LENGTH = "6"
 RESEND_API_KEY = "re_3XgEMxh8_8bhgcRqLmsBSsnysPdVLp6ox"
+RESEND_DOMAIN = "nf.yashigarments.com"
+RESEND_FROM_EMAIL = "noreply@nf.yashigarments.com"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
   

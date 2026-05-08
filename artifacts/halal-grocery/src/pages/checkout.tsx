@@ -333,19 +333,19 @@ export default function CheckoutPage() {
 
       {/* Order Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="max-w-sm w-[calc(100vw-2rem)] rounded-3xl border-border/50 p-0 overflow-hidden max-h-[90dvh] overflow-y-auto">
-          <div className="hg-gradient-primary p-6 text-center text-white">
-            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
-              <PartyPopper className="w-7 h-7 text-white" />
+        <DialogContent className="max-w-sm w-[calc(100vw-2rem)] rounded-3xl border-border/50 p-0 overflow-hidden max-h-[85dvh] overflow-y-auto">
+          <div className="hg-gradient-primary p-4 sm:p-6 text-center text-white">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+              <PartyPopper className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
             </div>
-            <h2 className="font-serif font-bold text-xl">Order Placed!</h2>
-            <p className="text-white/80 text-sm mt-1">Alhamdulillah — your halal order is confirmed</p>
+            <h2 className="font-serif font-bold text-lg sm:text-xl">Order Placed!</h2>
+            <p className="text-white/80 text-xs sm:text-sm mt-1">Alhamdulillah — your halal order is confirmed</p>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
             {confirmedOrder && (
               <div className="text-center">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Order Number</p>
-                <p className="font-serif text-2xl font-bold text-primary">#{confirmedOrder.orderNumber}</p>
+                <p className="font-serif text-xl sm:text-2xl font-bold text-primary">#{confirmedOrder.orderNumber}</p>
               </div>
             )}
             <p className="text-sm text-muted-foreground text-center">

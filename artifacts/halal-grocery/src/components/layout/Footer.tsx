@@ -160,12 +160,33 @@ export function Footer() {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        className="text-white/55 text-sm hover:text-white transition-colors"
+                        className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors"
                       >
                         {link.label}
                       </Link>
                     </li>
                   ))}
+                  <li>
+                    <p className="min-h-[1.5rem] flex items-center text-white/70 text-sm font-medium mt-1">My Account</p>
+                    <ul className="space-y-2 mt-1 pl-2">
+                      <li>
+                        <button
+                          onClick={() => setShowOtpModal(true)}
+                          className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors text-left"
+                        >
+                          Sign In
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => setShowOtpModal(true)}
+                          className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors text-left"
+                        >
+                          Create Account
+                        </button>
+                      </li>
+                    </ul>
+                  </li>
                 </ul>
               </div>
               <div>

@@ -180,10 +180,9 @@ function chainedErrorMessages(error: unknown): string {
   return parts.join(" | ");
 }
 
-/**
- * Must stay on Resend's unverified sender until a domain is verified in the Resend dashboard.
- */
-const RESEND_OTP_FROM = "Numa Fresh <onboarding@resend.dev>";
+const RESEND_OTP_FROM = process.env.RESEND_FROM_EMAIL
+  ? `Numa Fresh <${process.env.RESEND_FROM_EMAIL}>`
+  : "Numa Fresh <onboarding@resend.dev>";
 
 async function sendOtpEmail(to: string, otp: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
