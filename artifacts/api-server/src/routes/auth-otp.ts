@@ -575,6 +575,22 @@ router.post("/complete-profile", async (req: Request, res: Response) => {
       .limit(1);
 
     if (!proof) {
+      const [alreadyUser] = await db.select().from(usersTable).where(eq(usersTable.email, emailNorm)).limit(1);
+      if (alreadyUser && alreadyUser.isActive) {
+        const portalErr = sendOtpPortalError(portal, alreadyUser.role);
+        if (portalErr) {
+          res.status(portalErr.status).json(portalErr.body);
+          return;
+        }
+        const tokens = issueTokens(alreadyUser, portal);
+        res.status(200).json({
+          success: true,
+          user: safeUser(alreadyUser),
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        });
+        return;
+      }
       res.status(400).json({
         error: "SessionExpired",
         message: "Verification session expired. Please start sign-in again.",
@@ -584,9 +600,12 @@ router.post("/complete-profile", async (req: Request, res: Response) => {
 
     const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, emailNorm)).limit(1);
     if (existing) {
-      res.status(409).json({
-        error: "ConflictError",
-        message: "An account with this email already exists. Please sign in instead.",
+      const tokens = issueTokens(existing, portal);
+      res.status(200).json({
+        success: true,
+        user: safeUser(existing),
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       });
       return;
     }

@@ -24,6 +24,7 @@ export function OtpModal({ open, onClose }: OtpModalProps) {
           pageWrapperClass="p-6"
           primaryButtonClass="hg-gradient-primary border-0 text-white hover:opacity-90"
           alternatePortalLink={{ href: '/store-login', label: 'Store Owner? Sign in here →' }}
+          onSuccess={onClose}
         />
       </DialogContent>
     </Dialog>

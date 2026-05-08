@@ -26,6 +26,8 @@ export interface OtpLoginFlowProps {
   alternatePortalLink?: { href: string; label: string };
   /** When true, removes min-h-screen so it can be embedded in a Dialog */
   inModal?: boolean;
+  /** Called after successful sign-in or account creation (useful to close a modal) */
+  onSuccess?: () => void;
 }
 
 type Step = 'email' | 'otp' | 'profile';
@@ -47,6 +49,7 @@ export function OtpLoginFlow({
   primaryButtonClass,
   alternatePortalLink,
   inModal = false,
+  onSuccess,
 }: OtpLoginFlowProps) {
   const { user, establishSession, refreshUser } = useAuth();
   const [loc, setLocation] = useLocation();
@@ -231,6 +234,7 @@ export function OtpLoginFlow({
         toast({
           title: portal === 'seller' ? `Welcome, ${res.user.firstName}!` : `Welcome back, ${res.user.firstName}!`,
         });
+        onSuccess?.();
         applyRedirect(res.user);
       }
     } catch (e) {
@@ -269,6 +273,7 @@ export function OtpLoginFlow({
       });
       establishSession(res.user, res.accessToken, res.refreshToken);
       toast({ title: `Welcome to Numa Fresh, ${res.user.firstName}!` });
+      onSuccess?.();
       applyRedirect(res.user);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Something went wrong. Please try again.';
