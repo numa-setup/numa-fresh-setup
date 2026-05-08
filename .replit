@@ -1,20 +1,23 @@
 modules = ["nodejs-24", "postgresql-16"]
 
-[[artifacts]]
-id = "artifacts/api-server"
+  [[artifacts]]
+  id = "artifacts/api-server"
 
-[[artifacts]]
-id = "artifacts/mockup-sandbox"
+  [[artifacts]]
+  id = "artifacts/mockup-sandbox"
 
-[deployment]
-router = "application"
-deploymentTarget = "autoscale"
+  [[artifacts]]
+  id = "artifacts/halal-grocery"
 
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
+  [deployment]
+  router = "application"
+  deploymentTarget = "autoscale"
 
-[workflows]
+  [deployment.postBuild]
+  args = ["pnpm", "store", "prune"]
+  env = { "CI" = "true" }
+
+  [workflows]
 runButton = "Project"
 
 [[workflows.workflow]]
@@ -38,27 +41,27 @@ waitForPort = 5000
 [workflows.workflow.metadata]
 outputType = "webview"
 
-[agent]
-stack = "BEST_EFFORT_FALLBACK"
-expertMode = true
-integrations = ["javascript_openai_ai_integrations:2.0.0"]
+  [agent]
+  stack = "BEST_EFFORT_FALLBACK"
+  expertMode = true
+  integrations = ["javascript_openai_ai_integrations:2.0.0"]
 
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
+  [postMerge]
+  path = "scripts/post-merge.sh"
+  timeoutMs = 20000
 
-[nix]
-channel = "stable-25_05"
+  [nix]
+  channel = "stable-25_05"
 
-[userenv]
+  [userenv]
 
-[userenv.shared]
-NEON_URL = "postgresql://neondb_owner:npg_hKU8ArzWRe0C@ep-plain-shape-angdqxia.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
-NODE_ENV = "development"
-LOG_LEVEL = "info"
-FAST_DELIVERY_CHARGE = "5.00"
-OTP_EXPIRY_MINUTES = "10"
-OTP_LENGTH = "6"
+  [userenv.shared]
+  NEON_URL = "postgresql://neondb_owner:npg_hKU8ArzWRe0C@ep-plain-shape-angdqxia.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
+  NODE_ENV = "development"
+  LOG_LEVEL = "info"
+  FAST_DELIVERY_CHARGE = "5.00"
+  OTP_EXPIRY_MINUTES = "10"
+  OTP_LENGTH = "6"
 
 [[ports]]
 localPort = 5000
@@ -67,3 +70,4 @@ externalPort = 80
 [[ports]]
 localPort = 8080
 externalPort = 8080
+  
