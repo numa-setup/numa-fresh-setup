@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation } from 'wouter';
@@ -21,6 +21,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { OtpModal } from '@/components/auth/OtpModal';
 
 const ACCOUNT_LINKS = [
   {
@@ -54,6 +55,7 @@ export default function AccountPage() {
   const updateProfile = useUpdateProfile();
   const [, setLocation] = useLocation();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
@@ -80,19 +82,22 @@ export default function AccountPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-14 h-14 rounded-2xl hg-gradient-primary flex items-center justify-center mx-auto mb-4">
-            <User className="w-7 h-7 text-white" />
-          </div>
-          <h2 className="font-serif font-bold text-2xl mb-2">Sign in to your account</h2>
-          <p className="text-muted-foreground text-sm mb-4">Access orders, saved addresses, and more.</p>
-          <div className="flex gap-2 justify-center">
-            <Link href="/login"><Button className="hg-gradient-primary border-0 text-white">Sign In</Button></Link>
-            <Link href="/signup"><Button variant="outline">Create Account</Button></Link>
+      <>
+        <OtpModal open={showOtpModal} onOpenChange={setShowOtpModal} />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-14 h-14 rounded-2xl hg-gradient-primary flex items-center justify-center mx-auto mb-4">
+              <User className="w-7 h-7 text-white" />
+            </div>
+            <h2 className="font-serif font-bold text-2xl mb-2">Sign in to your account</h2>
+            <p className="text-muted-foreground text-sm mb-4">Access orders, saved addresses, and more.</p>
+            <div className="flex gap-2 justify-center">
+              <Button className="hg-gradient-primary border-0 text-white" onClick={() => setShowOtpModal(true)}>Sign In</Button>
+              <Button variant="outline" onClick={() => setShowOtpModal(true)}>Create Account</Button>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 

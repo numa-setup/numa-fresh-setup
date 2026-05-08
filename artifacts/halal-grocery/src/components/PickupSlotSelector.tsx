@@ -36,7 +36,7 @@ export function PickupSlotSelector({ slots, value, onChange }: PickupSlotSelecto
           <Calendar className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium">Select Date</span>
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {dates.map(date => {
             const hasSlots = slots.some(s => isSameDay(startOfDay(new Date(s.date)), date));
             const isSelected = isSameDay(date, selectedDate);

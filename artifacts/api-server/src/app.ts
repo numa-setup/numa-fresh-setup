@@ -54,6 +54,11 @@ function corsOriginFn(
     return;
   }
 
+  // Allow all Replit deployment and preview domains
+  if (/^https?:\/\/[a-zA-Z0-9-]+\.replit\.app$/.test(origin)) { callback(null, true); return; }
+  if (/^https?:\/\/[a-zA-Z0-9-]+-\d{2}-[a-zA-Z0-9]+\.[a-z]+\.replit\.dev$/.test(origin)) { callback(null, true); return; }
+  if (/^https?:\/\/.*\.replit\.dev$/.test(origin)) { callback(null, true); return; }
+
   // In development mode — allow everything
   if (process.env.NODE_ENV !== "production") { callback(null, true); return; }
 

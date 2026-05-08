@@ -36,7 +36,6 @@ const FOOTER_LINKS = {
   ],
   business: [
     { label: "List Your Store", href: "/seller" },
-    { label: "My Account", href: "/account" },
   ],
   support: [
     { label: "Privacy Policy", href: "/privacy" },

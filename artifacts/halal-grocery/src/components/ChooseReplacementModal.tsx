@@ -151,7 +151,7 @@ export function ChooseReplacementModal({ item, storeProducts = [], onClose }: Ch
                       {alternatives.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-3">No alternatives found</p>
                       ) : (
-                        <div className="flex gap-3 overflow-x-auto pb-1 snap-x">
+                        <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar snap-x">
                           {alternatives.map(alt => {
                             const altImg = alt.images?.[0] || '';
                             const isSelected = selectedProductId === alt.id;
