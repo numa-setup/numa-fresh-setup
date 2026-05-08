@@ -43,7 +43,7 @@ outputType = "webview"
 
   [agent]
   stack = "BEST_EFFORT_FALLBACK"
-  expertMode = true
+expertMode = true
   integrations = ["javascript_openai_ai_integrations:2.0.0"]
 
   [postMerge]
@@ -62,6 +62,7 @@ outputType = "webview"
   FAST_DELIVERY_CHARGE = "5.00"
   OTP_EXPIRY_MINUTES = "10"
   OTP_LENGTH = "6"
+RESEND_API_KEY = "re_3XgEMxh8_8bhgcRqLmsBSsnysPdVLp6ox"
 
 [[ports]]
 localPort = 5000
