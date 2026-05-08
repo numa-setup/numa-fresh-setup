@@ -24,6 +24,8 @@ export interface OtpLoginFlowProps {
   primaryButtonClass: string;
   /** Footer link to the other portal */
   alternatePortalLink?: { href: string; label: string };
+  /** When true, removes min-h-screen so it can be embedded in a Dialog */
+  inModal?: boolean;
 }
 
 type Step = 'email' | 'otp' | 'profile';
@@ -44,6 +46,7 @@ export function OtpLoginFlow({
   cardBorderClass = 'border-border/50',
   primaryButtonClass,
   alternatePortalLink,
+  inModal = false,
 }: OtpLoginFlowProps) {
   const { user, establishSession, refreshUser } = useAuth();
   const [loc, setLocation] = useLocation();
@@ -308,7 +311,7 @@ export function OtpLoginFlow({
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center py-12 px-4 ${pageWrapperClass}`}>
+    <div className={inModal ? `${pageWrapperClass}` : `min-h-screen flex items-center justify-center py-12 px-4 ${pageWrapperClass}`}>
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-3 shadow">{heroIcon}</div>

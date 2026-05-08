@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-export function ContactUs() {
+export function ContactUs({ inModal = false }: { inModal?: boolean }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -27,6 +27,42 @@ export function ContactUs() {
       setTimeout(() => setSubmitted(false), 5000);
     }, 600);
   };
+
+  if (inModal) {
+    return (
+      <div className="p-6">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-6">
+          <p className="text-xs font-bold tracking-widest uppercase text-primary mb-1">Get In Touch</p>
+          <h2 className="font-serif text-2xl font-bold mb-1">Contact Us</h2>
+          <p className="text-muted-foreground text-sm">Have a question? Send us a note — we read every message.</p>
+        </motion.div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="m-contact-name" className="text-xs font-semibold">Your Name</Label>
+              <Input id="m-contact-name" required value={name} onChange={e => setName(e.target.value)} placeholder="Fatima Rahman" className="rounded-xl h-11" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-contact-email" className="text-xs font-semibold">Email Address</Label>
+              <Input id="m-contact-email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="rounded-xl h-11" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="m-contact-subject" className="text-xs font-semibold">Subject</Label>
+            <Input id="m-contact-subject" value={subject} onChange={e => setSubject(e.target.value)} placeholder="What can we help with?" className="rounded-xl h-11" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="m-contact-message" className="text-xs font-semibold">Message</Label>
+            <textarea id="m-contact-message" required value={message} onChange={e => setMessage(e.target.value)} placeholder="Tell us what you need..." className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm min-h-[120px] resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+          </div>
+          <Button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-11 gap-2 font-semibold">
+            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</> : submitted ? <><CheckCircle className="w-4 h-4" /> Sent!</> : <><Send className="w-4 h-4" /> Send Message</>}
+          </Button>
+          {submitted && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-primary font-medium text-center">Your email client should have opened with the message ready to send.</motion.p>}
+        </form>
+      </div>
+    );
+  }
 
   return (
     <section id="contact" className="bg-muted/30 border-t border-border/50">

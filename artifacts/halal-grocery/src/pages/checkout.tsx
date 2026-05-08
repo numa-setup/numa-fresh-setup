@@ -42,8 +42,6 @@ export default function CheckoutPage() {
   const [subPrefs, setSubPrefs] = useState<Record<string, string>>({});
 
   // Step 3 state
-  const [promoCode, setPromoCode] = useState('');
-  const [promoData, setPromoData] = useState<{ code: string; discountAmount: number } | null>(null);
   const [tip, setTip] = useState(0);
   const [notes, setNotes] = useState('');
   const [isFastDelivery, setIsFastDelivery] = useState(false);
@@ -107,7 +105,7 @@ export default function CheckoutPage() {
   const fastDeliveryCharge = orderType === 'DELIVERY' && isFastDelivery
     ? Number(fastDeliveryEnv || 0)
     : 0;
-  const promoDiscount = promoData?.discountAmount || 0;
+  const promoDiscount = 0;
   const total = Math.max(0, subtotal + convenienceFee + curbsideFee + deliveryFee + fastDeliveryCharge - promoDiscount + tip);
   const hasMeat = items.some(i => (i.product as any).isFreshMeat);
 
@@ -117,7 +115,7 @@ export default function CheckoutPage() {
     ...(curbsideFee > 0 ? [{ label: 'Curbside Fee', amount: curbsideFee }] : []),
     ...(deliveryFee > 0 ? [{ label: 'Delivery Fee', amount: deliveryFee }] : []),
     ...(fastDeliveryCharge > 0 ? [{ label: 'Fast Delivery', amount: fastDeliveryCharge }] : []),
-    ...(promoDiscount > 0 ? [{ label: `Promo (${promoData?.code})`, amount: promoDiscount, negative: true }] : []),
+    ...(promoDiscount > 0 ? [{ label: 'Promo', amount: promoDiscount, negative: true }] : []),
     ...(tip > 0 ? [{ label: 'Tip (Thank you!)', amount: tip }] : []),
   ];
 
@@ -144,7 +142,7 @@ export default function CheckoutPage() {
         substitutionPref: subPrefs[i.product.id] || 'NO_REPLACEMENT',
         customerNote: i.noteForShopper || null,
       })),
-      promoCode: promoData?.code || null,
+      promoCode: null,
       tip,
       loyaltyPointsToUse: 0,
       vehicleInfo: hasVehicleInfo ? vehicleInfo : null,
@@ -161,7 +159,7 @@ export default function CheckoutPage() {
       fastDeliveryCharge,
       totalAmount: total,
     };
-  }, [storeId, orderType, selectedSlot, items, subPrefs, promoData, tip, vehicleInfo, notes, paymentMethod, isFastDelivery, deliveryAddress, fastDeliveryCharge, total]);
+  }, [storeId, orderType, selectedSlot, items, subPrefs, tip, vehicleInfo, notes, paymentMethod, isFastDelivery, deliveryAddress, fastDeliveryCharge, total]);
 
   useEffect(() => {
     if (!stripeUsableKey) return;
@@ -328,7 +326,7 @@ export default function CheckoutPage() {
 
       {/* Order Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="sm:max-w-sm rounded-3xl border-border/50 p-0 overflow-hidden">
+        <DialogContent className="max-w-sm w-[calc(100vw-2rem)] rounded-3xl border-border/50 p-0 overflow-hidden max-h-[90dvh] overflow-y-auto">
           <div className="hg-gradient-primary p-6 text-center text-white">
             <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
               <PartyPopper className="w-7 h-7 text-white" />
@@ -597,39 +595,6 @@ export default function CheckoutPage() {
                       <span className="text-sm font-semibold">${(item.product.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
-                </div>
-
-                {/* Promo code */}
-                <div className="space-y-2">
-                  <Label>Promo Code</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={promoCode}
-                      onChange={e => setPromoCode(e.target.value.toUpperCase())}
-                      placeholder="WELCOME10"
-                      className="rounded-xl flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          const data = await api.post<any>('/orders/promo/validate', { code: promoCode, orderTotal: subtotal });
-                          if (!data.valid) {
-                            toast.error(data.message || 'Invalid promo code');
-                            return;
-                          }
-                          setPromoData({ code: promoCode, discountAmount: data.discountAmount });
-                          toast.success(`Promo applied! -$${data.discountAmount.toFixed(2)}`);
-                        } catch (e: any) {
-                          toast.error(e.message || 'Invalid promo code');
-                        }
-                      }}
-                      className="rounded-xl"
-                      disabled={!promoCode}
-                    >
-                      Apply
-                    </Button>
-                  </div>
                 </div>
 
                 {/* Tip */}

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CartDrawer } from '@/components/CartDrawer';
+import { OtpModal } from '@/components/auth/OtpModal';
 import { ShoppingCart, Menu, X, User, LogOut, Package } from 'lucide-react';
 import { NotificationBell } from '@/components/NotificationBell';
 import {
@@ -26,6 +27,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const isOwner = user?.role === 'STORE_OWNER';
 
   useEffect(() => {
@@ -147,9 +149,7 @@ export function Navbar() {
                   <Link href="/login">
                     <Button variant="ghost" size="sm">Sign In</Button>
                   </Link>
-                  <Link href="/signup">
-                    <Button size="sm" className="hg-gradient-primary border-0 text-white hover:opacity-90">Get Started</Button>
-                  </Link>
+                  <Button size="sm" className="hg-gradient-primary border-0 text-white hover:opacity-90" onClick={() => setShowOtpModal(true)}>Get Started</Button>
                 </div>
               )}
 
@@ -225,9 +225,7 @@ export function Navbar() {
                     <Link href="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
                       <Button variant="outline" className="w-full rounded-xl" size="sm">Sign In</Button>
                     </Link>
-                    <Link href="/signup" className="flex-1" onClick={() => setMobileOpen(false)}>
-                      <Button size="sm" className="w-full hg-gradient-primary border-0 text-white rounded-xl">Get Started</Button>
-                    </Link>
+                    <Button size="sm" className="flex-1 w-full hg-gradient-primary border-0 text-white rounded-xl" onClick={() => { setShowOtpModal(true); setMobileOpen(false); }}>Get Started</Button>
                   </div>
                 )}
               </div>
@@ -238,6 +236,9 @@ export function Navbar() {
 
       {/* Cart Drawer */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+
+      {/* OTP Login Modal */}
+      <OtpModal open={showOtpModal} onClose={() => setShowOtpModal(false)} />
 
       {/* Logout Confirmation */}
       <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

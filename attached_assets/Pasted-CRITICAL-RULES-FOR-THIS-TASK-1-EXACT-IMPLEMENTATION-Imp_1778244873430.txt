@@ -1,0 +1,106 @@
+CRITICAL RULES FOR THIS TASK:
+=================================
+1. EXACT IMPLEMENTATION: Implement exactly as stated, no deviations
+2. NO ASSUMPTIONS: Do not attempt anything on your own
+3. NO SKIPPING: Do not skip any mentioned issue without fixing it
+4. PERMISSION FIRST: If any error, missing functionality, or unclear request occurs:
+   - First confirm: "Should this functionality be implemented?"
+   - If permission is given, implement it
+   - If permission is not given, do not implement it at all
+5. STRUCTURE INTACT: Design, structure, and functionality must not be disturbed
+
+=================================
+
+## HOMEPAGE HEADER FIXES:
+
+### Get Started Button - Passwordless OTP Login:
+- Click on "Get Started" button in header should open passwordless OTP flow
+- Flow Process:
+  * User enters email/phone
+  * OTP is sent
+  * OTP verification happens
+  * Extra information is collected (name, etc.)
+  * Account is automatically created
+- NOTE: If this functionality was previously working in Cursor, check and integrate that code
+
+## FOOTER FIXES:
+
+### 3 Locations with Same Passwordless OTP Functionality:
+
+**Location 1: Footer -> Create Account Button**
+- Same passwordless OTP functionality as "Get Started" button
+- Exact same process: Email → OTP → Verify → Extra Info → Account Create
+
+**Location 2: Footer -> My Account -> Create Account**
+- Same passwordless OTP functionality
+- Exact same process
+- Manage in prompt that all 3 locations have identical functionality
+
+**Location 3: Footer -> Support -> Contact Us**
+- Same passwordless OTP functionality
+
+### Contact Us Form:
+- Clicking on **"Footer -> Support -> Contact Us"** should open the previous "Contact Us" form (mandatory)
+
+### Contact Location:
+- **"Footer -> Contact -> Location"** must be clickable
+- Should open in Google Maps
+
+### Tab Height Spacing - IMPORTANT:
+**Footer Contact Section tabs:**
+- Email, Phone, Location (3 tabs with specific height)
+
+**Footer Support Section tabs:**
+- Privacy Policies, Terms of Services, Contact Us (3 tabs with specific height)
+
+**FIX:** Height spacing of both sections' tabs must be EXACTLY the same
+
+## PRODUCTS & CHECKOUT FIXES:
+
+### Remove Promo Code Section:
+- On "Checkout" page when ordering products
+- Remove "Promo Code" section completely from "Review & Pay" section
+- No leftover space or styling issues should remain
+
+### Place Order Functionality - BROKEN:
+- **ERROR:** Place order functionality is not working when trying to place order
+- **FIX REQUIRED:** Fix the place order functionality
+- Confirmation needed: What is the exact issue?
+- After fixing, add proper error handling
+
+### Confirm Place Order Popup - MOBILE VIEW:
+- Popup card design is not fully visible on mobile view
+- **FIX:** Make popup responsive for mobile view
+- Complete card should be visible without scrolling
+
+### Product Images - MOBILE VIEW:
+- Product images are too large on mobile view
+- **FIX:** Reduce image size according to mobile screen dimensions
+- Implement responsive sizing
+
+=================================
+
+## IMPLEMENTATION CHECKLIST:
+
+- [ ] Get Started Button: Passwordless OTP
+- [ ] Footer Create Account: Passwordless OTP (Same as Get Started)
+- [ ] Footer My Account -> Create Account: Passwordless OTP (Same)
+- [ ] Footer Support -> Contact Us: Passwordless OTP (Same)
+- [ ] Contact Us Form: Open from Footer Support section
+- [ ] Contact Location: Clickable, opens Google Maps
+- [ ] Tab Heights: Contact & Support tabs same spacing
+- [ ] Remove Promo Code: From Checkout Review & Pay
+- [ ] Fix Place Order: Functionality working properly
+- [ ] Mobile Popup: Responsive, fully visible
+- [ ] Product Images: Responsive mobile sizing
+
+=================================
+
+## CONFIRMATION NEEDED BEFORE PROCEEDING:
+
+Before starting, confirm these points:
+1. What is the exact error for "Place Order" functionality? (screenshot or error message)
+2. Was OTP functionality previously working in Cursor? (if yes, where?)
+3. Is database/backend setup ready or is it frontend only?
+
+=================================
