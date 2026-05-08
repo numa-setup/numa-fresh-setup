@@ -36,6 +36,8 @@ const AccountSavedPage = lazy(() => import("@/pages/account-saved"));
 const PrivacyPage = lazy(() => import("@/pages/privacy"));
 const TermsPage = lazy(() => import("@/pages/terms"));
 const ProductDetailPage = lazy(() => import("@/pages/product-detail"));
+const ProductsPage = lazy(() => import("@/pages/products"));
+const StoresPage = lazy(() => import("@/pages/stores"));
 
 // Admin Panel pages — self-contained with AdminLayout (no Navbar/Footer)
 const AdminPage = lazy(() => import("@/pages/admin"));
@@ -223,7 +225,9 @@ function Router() {
 
         {/* ── Public / Customer pages (wrapped in AppLayout) ── */}
         <Route path="/" component={() => <HomeLayout><HomePage /></HomeLayout>} />
+        <Route path="/stores" component={() => <AppLayout><StoresPage /></AppLayout>} />
         <Route path="/stores/:storeSlug" component={() => <AppLayout><StoreDetailPage /></AppLayout>} />
+        <Route path="/products" component={() => <AppLayout><ProductsPage /></AppLayout>} />
         <Route path="/products/:slug" component={() => <AppLayout><ProductDetailPage /></AppLayout>} />
         <Route path="/privacy" component={() => <AppLayout><PrivacyPage /></AppLayout>} />
         <Route path="/terms" component={() => <AppLayout><TermsPage /></AppLayout>} />

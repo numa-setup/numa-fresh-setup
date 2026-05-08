@@ -59,7 +59,7 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
-    hmr: { port: port + 21678 },
+    hmr: { clientPort: port },
     fs: {
       strict: true,
       deny: ["**/.*"],

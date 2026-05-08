@@ -5,15 +5,8 @@ function getApiOrigin(): string {
     return envApiUrl.replace(/\/$/, "");
   }
 
-  // In local dev, derive the backend host from the CURRENT page hostname.
-  // → On computer  (localhost:5173):      uses http://localhost:8080
-  // → On phone/LAN (192.168.1.6:5173):   uses http://192.168.1.6:8080
-  // This means QR scan on any phone works without any manual configuration.
-  if (import.meta.env.DEV) {
-    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-    return `http://${host}:8080`;
-  }
-
+  // Use relative URLs in all environments — Vite proxies /api → localhost:8080 in dev,
+  // and the production server serves /api directly.
   return "";
 }
 
