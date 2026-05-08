@@ -1,0 +1,78 @@
+My project is being used on both Cursor and Replit.
+When I move to Replit, it reverts to old code.
+
+I need you to:
+
+=============================================================
+## TASK — SYNC CURSOR CHANGES TO REPLIT:
+=============================================================
+
+STEP 1 — List all files that were changed:
+Scan the entire project and identify ALL files 
+that were recently modified including:
+- OTP/passwordless authentication files
+- Payment integration files  
+- Any fixed functionality files
+- Any new components or routes added
+
+Create a complete list of changed files with paths.
+
+STEP 2 — Create a deployment package:
+Create a script that can be run to verify
+all changes are present:
+
+Create file: scripts/verify-changes.js
+
+This script should check:
+- OTP auth routes exist
+- Payment routes exist  
+- Stripe integration exists
+- All new components exist
+- All fixes are in place
+
+STEP 3 — Create .replit config:
+Create or update .replit file to:
+- Use correct start command
+- Point to correct entry file
+- NOT override any existing code
+
+STEP 4 — Create setup instructions:
+Create file: REPLIT_SETUP.md with:
+- Exact environment variables needed
+- Exact start commands
+- What NOT to change
+
+=============================================================
+## ENVIRONMENT VARIABLES FOR REPLIT:
+=============================================================
+
+These must be added in Replit Secrets:
+(NOT in code — in Replit's Secrets panel)
+
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_test_placeholder
+FAST_DELIVERY_CHARGE=5.00
+RESEND_API_KEY=re_xxx
+OTP_EXPIRY_MINUTES=10
+OTP_LENGTH=6
+
+=============================================================
+## STRICT RULES FOR REPLIT:
+=============================================================
+
+Create a .replit file that tells Replit:
+- Do NOT modify any existing files
+- Do NOT add new packages automatically
+- Do NOT change any configuration
+- Use EXACTLY the same code as Cursor
+
+=============================================================
+## GOAL:
+=============================================================
+
+When this project runs on Replit:
+- Same OTP login works ✅
+- Same payment integration works ✅
+- Same fixes are in place ✅
+- Replit does NOT revert anything ✅
