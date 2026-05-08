@@ -1,0 +1,210 @@
+CRITICAL IMPLEMENTATION RULES:
+=================================
+1. EXACT EXECUTION: Implement exactly as described, no modifications
+2. NO ASSUMPTIONS: Do not add anything on your own
+3. MANDATORY FIXES: All issues must be fixed completely
+4. NO ERRORS ALLOWED: After implementation, zero errors should exist
+5. STRUCTURE PRESERVED: Design and functionality must remain intact
+
+=================================
+
+## ISSUE 1: PLACE ORDER FUNCTIONALITY - CRITICAL FIX
+
+### Current Problem:
+- Place order functionality is throwing errors
+- Order cannot be completed
+
+### Required Fix:
+- Debug and fix all errors in place order functionality
+- Ensure order placement works smoothly without any errors
+- Add proper error handling and validation
+- Test complete order flow: Cart → Checkout → Review & Pay → Place Order → Success
+
+=================================
+
+## ISSUE 2: FOOTER CONTACT SECTION - TAB HEIGHT SPACING
+
+### Current Problem:
+- Footer Contact section (Email, Phone, Location tabs) has incorrect height spacing
+- Footer Support section (Privacy Policies, Terms of Services, Contact Us tabs) has different height spacing
+- Heights do not match
+
+### Required Fix:
+- Make all tab heights EXACTLY the same
+- Contact section tabs height = Support section tabs height
+- Remove any inconsistent padding/margin
+- Verify alignment is perfect
+
+=================================
+
+## ISSUE 3: FOOTER MY ACCOUNT -> CREATE ACCOUNT
+
+### Current Problem:
+- Currently opens a signup form (wrong)
+- Should NOT open new page or form
+
+### Required Fix:
+- Remove signup form redirect
+- Instead, trigger passwordless OTP popup authentication
+- Same OTP popup as "Get Started" button
+- No new page should open
+
+=================================
+
+## ISSUE 4: SIGN IN BUTTON - POPUP vs NEW PAGE LOGIC
+
+### Current Problem:
+- Sign In button opens new page (incorrect behavior)
+
+### Required Logic:
+**For Sign In Button Behavior:**
+- Default behavior: Click → Opens popup with passwordless OTP authentication
+- No new page opens by default
+- Popup contains: Email/Phone input → OTP → Verification → Login
+
+**Exception - New Page Only When:**
+- URL contains `/login` or `/signin` → Opens dedicated Sign In page
+- This page shows passwordless OTP authentication in full page format
+- Both popup and page redirect to same authenticated state
+
+=================================
+
+## ISSUE 5: GET STARTED, CREATE ACCOUNT, SIGN UP - UNIFIED FLOW
+
+### Current State:
+- These buttons/links exist: "Get Started", "Create Account", "Sign Up"
+- They may be in header, footer, or other locations
+
+### Required Implementation:
+
+**All these routes redirect to same Create Account page:**
+- `/get-started`
+- `/create-account`
+- `/sign-up`
+
+**When accessing these routes:**
+- Dedicated full page opens (not popup)
+- Page displays passwordless OTP authentication
+- Process: Email/Phone → OTP → Verify → Extra Info → Account Create
+
+**When clicking buttons/links (not direct URL access):**
+- Popup opens instead of page
+- Same passwordless OTP functionality
+- Popup behavior applies everywhere else
+
+=================================
+
+## AUTHENTICATION POPUP vs PAGE LOGIC SUMMARY:
+
+### Popup Opens When:
+- Click "Get Started" button (header/footer)
+- Click "Sign In" button (header/footer) 
+- Click "Create Account" button (footer)
+- Click "My Account" → "Create Account"
+- Any authentication trigger from buttons/links
+
+**Popup Contents:** Passwordless OTP flow
+**No new page loads - stays on current page**
+
+### New Page Opens When:
+- Direct URL access: `/login` → Sign In Page
+- Direct URL access: `/signin` → Sign In Page  
+- Direct URL access: `/create-account` → Create Account Page
+- Direct URL access: `/sign-up` → Create Account Page
+- Direct URL access: `/get-started` → Create Account Page
+
+**Page Contents:** Full passwordless OTP authentication form
+**Dedicated page with complete form**
+
+**Redirect Behavior:**
+- All Sign In routes (`/login`, `/signin`) → Same authentication page
+- All Create Account routes (`/create-account`, `/sign-up`, `/get-started`) → Same authentication page
+- After successful auth → Redirect to dashboard/home
+
+=================================
+
+## COMPLETE IMPLEMENTATION CHECKLIST:
+
+- [ ] Place Order: All errors fixed, functionality working 100%
+- [ ] Footer Contact Tabs: Height spacing same as Support tabs
+- [ ] Footer Support Tabs: Height spacing same as Contact tabs
+- [ ] My Account -> Create Account: Opens OTP popup (not form)
+- [ ] Sign In Button: Opens OTP popup by default
+- [ ] Sign In Button: When URL is `/login` or `/signin`, opens dedicated page
+- [ ] Get Started Button: Opens OTP popup
+- [ ] Get Started URL route: `/get-started` opens dedicated page
+- [ ] Create Account Button (all): Opens OTP popup
+- [ ] Create Account URL routes: `/create-account` opens dedicated page
+- [ ] Sign Up URL route: `/sign-up` opens dedicated page
+- [ ] OTP Popup: Works everywhere (except direct URL routes)
+- [ ] All redirects: Work correctly after authentication
+- [ ] No new errors: Complete system error-free
+
+=================================
+
+## DETAILED POPUP IMPLEMENTATION:
+
+### Passwordless OTP Popup Component:
+- Reusable popup component
+- Triggered by all button clicks
+- Contains:
+  1. Email/Phone input field
+  2. "Send OTP" button
+  3. OTP input field (appears after sending OTP)
+  4. "Verify OTP" button
+  5. Extra information fields (name, etc. - appears after OTP verification)
+  6. "Create Account" / "Sign In" button
+- Close button (X) to dismiss popup
+- No page navigation required
+- Stays as popup overlay
+
+=================================
+
+## DETAILED PAGE IMPLEMENTATION:
+
+### Authentication Pages (Full Page):
+**For Sign In Page (`/login`, `/signin`):**
+- Dedicated page layout
+- Same passwordless OTP form fields
+- Professional page design
+- After success → Redirect to dashboard
+
+**For Create Account Page (`/create-account`, `/sign-up`, `/get-started`):**
+- Dedicated page layout
+- Same passwordless OTP form fields
+- Professional page design
+- After success → Redirect to dashboard or home
+
+=================================
+
+## TESTING REQUIREMENTS:
+
+Test these scenarios:
+1. Click "Get Started" → Popup opens → OTP works → Account created ✓
+2. Click "Sign In" → Popup opens → OTP works → Login successful ✓
+3. Click "Create Account" (footer) → Popup opens → OTP works → Account created ✓
+4. Click "My Account" → "Create Account" → Popup opens → OTP works ✓
+5. Direct URL `/login` → Full Sign In page loads ✓
+6. Direct URL `/signin` → Full Sign In page loads ✓
+7. Direct URL `/create-account` → Full Create Account page loads ✓
+8. Direct URL `/sign-up` → Full Create Account page loads ✓
+9. Direct URL `/get-started` → Full Create Account page loads ✓
+10. Place order → Order placed successfully, no errors ✓
+11. Mobile view → Popup responsive, fully visible ✓
+12. Tab heights → Contact and Support tabs perfectly aligned ✓
+
+=================================
+
+## FINAL VERIFICATION:
+
+After implementation:
+- [ ] Zero runtime errors in console
+- [ ] All authentication flows working
+- [ ] Popup and page routes working correctly
+- [ ] Place order functionality 100% functional
+- [ ] Mobile responsive design maintained
+- [ ] Tab heights perfectly aligned
+- [ ] All redirects working properly
+- [ ] No broken links or missing functionality
+
+=================================

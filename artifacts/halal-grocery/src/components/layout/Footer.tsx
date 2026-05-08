@@ -130,7 +130,7 @@ export function Footer() {
                 </h4>
                 <ul className="space-y-2.5">
                   {accountLinks.map((link) =>
-                    link.label === "Create Account" ? (
+                    link.label === "Create Account" || link.label === "Sign In" ? (
                       <li key={link.label}>
                         <button
                           onClick={() => setShowOtpModal(true)}
@@ -205,19 +205,19 @@ export function Footer() {
                   <li>
                     <a
                       href="mailto:numasetup@gmail.com"
-                      className="footer-contact-item flex items-start gap-2 text-white/55 text-sm hover:text-white transition-colors leading-snug"
+                      className="min-h-[1.5rem] flex items-center gap-2 text-white/55 text-sm hover:text-white transition-colors"
                     >
-                      <Mail className="w-3.5 h-3.5 text-[#3FB196] mt-0.5 shrink-0" />
-                      <span className="break-all">numasetup@gmail.com</span>
+                      <Mail className="w-3.5 h-3.5 text-[#3FB196] shrink-0" />
+                      <span>numasetup@gmail.com</span>
                     </a>
                   </li>
                   <li>
                     <a
                       href="tel:+15712645687"
-                      className="footer-contact-item flex items-center gap-2 text-white/55 text-sm hover:text-white transition-colors"
+                      className="min-h-[1.5rem] flex items-center gap-2 text-white/55 text-sm hover:text-white transition-colors"
                     >
-                      <Phone className="w-3.5 h-3.5 text-[#3FB196] shrink-0" />{" "}
-                      +1 (571) 264-5687
+                      <Phone className="w-3.5 h-3.5 text-[#3FB196] shrink-0" />
+                      <span>+1 (571) 264-5687</span>
                     </a>
                   </li>
                   <li>
@@ -225,14 +225,10 @@ export function Footer() {
                       href="https://maps.google.com/?q=4773+Charter+Ct,+Woodbridge,+VA"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="footer-contact-item flex items-start gap-2 text-white/55 text-sm hover:text-white transition-colors leading-snug"
+                      className="min-h-[1.5rem] flex items-center gap-2 text-white/55 text-sm hover:text-white transition-colors"
                     >
-                      <MapPin className="w-3.5 h-3.5 text-[#3FB196] mt-0.5 shrink-0" />
-                      <span className="leading-snug">
-                        4773 Charter Ct,
-                        <br />
-                        Woodbridge VA, USA
-                      </span>
+                      <MapPin className="w-3.5 h-3.5 text-[#3FB196] shrink-0" />
+                      <span>4773 Charter Ct, Woodbridge VA</span>
                     </a>
                   </li>
                 </ul>

@@ -25,6 +25,7 @@ const LoginPage = lazy(() => import("@/pages/login"));
 const StoreLoginPage = lazy(() => import("@/pages/store-login"));
 const AdminLoginPage = lazy(() => import("@/pages/admin-login"));
 const SignupPage = lazy(() => import("@/pages/signup"));
+const CreateAccountPage = lazy(() => import("@/pages/create-account"));
 const OrdersPage = lazy(() => import("@/pages/orders"));
 const OrderDetailPage = lazy(() => import("@/pages/order-detail"));
 const OrderTrackingPage = lazy(() => import("@/pages/order-tracking"));
@@ -242,6 +243,10 @@ function Router() {
         <Route path="/seller" component={StoreLoginPage} />
         <Route path="/admin-login" component={AdminRedirect} />
         <Route path="/signup" component={SignupPage} />
+        <Route path="/signin" component={LoginPage} />
+        <Route path="/get-started" component={CreateAccountPage} />
+        <Route path="/create-account" component={CreateAccountPage} />
+        <Route path="/sign-up" component={CreateAccountPage} />
 
         {/* Customer account */}
         <Route path="/cart" component={() => <AppLayout><CartPage /></AppLayout>} />

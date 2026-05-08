@@ -307,7 +307,14 @@ export default function CheckoutPage() {
   }
 
   const handlePlaceOrder = () => {
-    if (!checkoutPayload) return;
+    if (!checkoutPayload) {
+      toast.error('Your cart is empty or store is unavailable. Please go back and add items.');
+      return;
+    }
+    if (!user) {
+      toast.error('Please sign in to place your order.');
+      return;
+    }
     if (orderType === 'DELIVERY') {
       const missing = !deliveryAddress.street.trim() || !deliveryAddress.city.trim() || !deliveryAddress.state.trim() || !deliveryAddress.zip.trim();
       if (missing) {
