@@ -513,9 +513,15 @@ function ProductDrawer({ open, onClose, initialData, onSave, categoryOptions = C
 }
 
 // ─── Bulk Import Modal ─────────────────────────────────────────────────────
-// Column headers in the template — plain names, no asterisks
-const IMPORT_COLUMNS = ['name', 'price', 'productType', 'category', 'unit', 'stockQty', 'comparePrice', 'description', 'sku', 'image1', 'image2', 'image3', 'image4'];
-const IMPORT_REQUIRED = ['name', 'price'];
+const IMPORT_COLUMNS = [
+  'Product Name', 'Description', 'Product Type', 'Unit', 'Category', 'Subcategory',
+  'Product Images', 'Tags', 'Price ($)', 'Compare Price ($)', 'Stock Quantity',
+  'Low Stock Alert', 'SKU/Barcode', 'Freshness Label', 'Full Product Details',
+  'Ingredients', 'Usage/Cooking Directions', 'Certified From', 'Best Before/Expiry',
+  'Halal Certified', 'Featured Product', 'Active/Visible',
+  'Calories (kcal)', 'Protein (g)', 'Carbohydrates (g)', 'Total Fat (g)',
+];
+const IMPORT_REQUIRED = ['Product Name', 'Price ($)'];
 const IMPORT_PRODUCT_TYPES = ['PACKAGED', 'FRESH_MEAT', 'PRODUCE', 'FROZEN', 'SPICES', 'BAKERY', 'DAIRY', 'BEVERAGES'];
 
 function BulkImportModal({ open, onClose, onImported }: { open: boolean; onClose: () => void; onImported: () => void }) {
@@ -571,9 +577,31 @@ function BulkImportModal({ open, onClose, onImported }: { open: boolean; onClose
 
   const downloadTemplate = () => {
     const headers = IMPORT_COLUMNS.join(',');
-    const example1 = 'Halal Chicken Breast,8.99,FRESH_MEAT,Meat & Poultry,kg,100,10.99,Fresh whole chicken breast,SKU-001,,https://example.com/chicken.jpg,,,';
-    const example2 = 'Basmati Rice 5kg,12.49,PACKAGED,Rice & Grains,bag,50,,Premium aged basmati rice,SKU-002,,https://example.com/rice.jpg,https://example.com/rice2.jpg,,';
-    const csv = [headers, example1, example2].join('\n');
+    const example1 = [
+      'Halal Chicken Breast', 'Fresh halal chicken breast portions', 'PACKAGED', 'piece',
+      'Meat', 'Chicken', 'halal_chicken.jpg', 'halal fresh certified',
+      '12.99', '14.99', '100', '10', 'SKU-001', 'Cut this morning',
+      'Premium halal certified chicken breast cuts fresh daily', '100% Pure Chicken Breast',
+      'Grill at 375°F for 25-30 minutes until 165°F internal temp', 'HMA Certified',
+      '05/12/2026', 'Yes', 'No', 'Yes', '165', '31', '0', '7.4',
+    ].join(',');
+    const example2 = [
+      'Basmati Rice Premium 20lb', 'Long grain basmati rice', 'PACKAGED', 'piece',
+      'Grains', 'Rice', 'basmati_rice.jpg', 'halal basmati rice certified bulk',
+      '18.99', '22.99', '80', '8', 'SKU-002', 'Fresh Stock',
+      'Premium long grain basmati rice aged for perfect fluffy texture', '100% Pure Basmati Rice',
+      'Rinse 2-3 times then cook 1 cup with 1.75 cups water for 15-18 min', 'ISNA Canada',
+      '05/09/2027', 'Yes', 'No', 'Yes', '206', '4.3', '45', '0.3',
+    ].join(',');
+    const example3 = [
+      'Shan Biryani Masala', 'Premium biryani spice blend', 'PACKAGED', 'piece',
+      'Spices', 'Spice Blends', 'shan_biryani.jpg', 'halal fresh certified spice',
+      '4.99', '5.99', '150', '10', 'SKU-003', 'Fresh',
+      'Premium Pakistani biryani masala with authentic spices', 'Cumin coriander cardamom bay leaves',
+      'Add 2-3 tbsp to 2kg rice with ghee and onions', 'ISNA Canada HMA',
+      '05/09/2027', 'Yes', 'No', 'Yes', '15', '0.5', '3', '0.2',
+    ].join(',');
+    const csv = [headers, example1, example2, example3].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'numa-fresh-product-template.csv'; a.click();
   };
@@ -639,15 +667,21 @@ function BulkImportModal({ open, onClose, onImported }: { open: boolean; onClose
 
             {/* Column reference */}
             <div className="bg-muted/30 rounded-xl p-3 space-y-2">
-              <p className="text-xs font-semibold text-muted-foreground">Columns (red = required, blue = images):</p>
+              <p className="text-xs font-semibold text-muted-foreground">Columns (red = required, green = Yes/No, blue = images, purple = nutrition):</p>
               <div className="flex flex-wrap gap-1.5">
-                {IMPORT_COLUMNS.map(c => (
-                  <span key={c} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${IMPORT_REQUIRED.includes(c) ? 'bg-red-100 text-red-700' : c.startsWith('image') ? 'bg-blue-100 text-blue-700' : 'bg-muted text-muted-foreground'}`}>{c}</span>
-                ))}
+                {IMPORT_COLUMNS.map(c => {
+                  const isRequired = IMPORT_REQUIRED.includes(c);
+                  const isImage = c === 'Product Images';
+                  const isYesNo = ['Halal Certified', 'Featured Product', 'Active/Visible'].includes(c);
+                  const isNutrition = ['Calories (kcal)', 'Protein (g)', 'Carbohydrates (g)', 'Total Fat (g)'].includes(c);
+                  const cls = isRequired ? 'bg-red-100 text-red-700' : isImage ? 'bg-blue-100 text-blue-700' : isYesNo ? 'bg-green-100 text-green-700' : isNutrition ? 'bg-purple-100 text-purple-700' : 'bg-muted text-muted-foreground';
+                  return <span key={c} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cls}`}>{c}</span>;
+                })}
               </div>
-              <p className="text-[10px] text-muted-foreground"><span className="font-semibold text-blue-700">image1–image4</span>: paste direct image URLs (https://…). Leave blank if none.</p>
-              <p className="text-[10px] text-muted-foreground"><span className="font-semibold">productType</span> values: {IMPORT_PRODUCT_TYPES.join(', ')}</p>
-              <p className="text-[10px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1">Column names are flexible — "Name", "Product Name", "product_name" all work for the name column.</p>
+              <p className="text-[10px] text-muted-foreground"><span className="font-semibold text-blue-700">Product Images</span>: image filename (e.g. <code>chicken.jpg</code>) or full URL. One image per product.</p>
+              <p className="text-[10px] text-muted-foreground"><span className="font-semibold text-green-700">Yes/No columns</span>: use <strong>Yes</strong> or <strong>No</strong> (defaults: Halal=Yes, Featured=No, Active=Yes).</p>
+              <p className="text-[10px] text-muted-foreground"><span className="font-semibold">Product Type</span> values: {IMPORT_PRODUCT_TYPES.join(', ')}.</p>
+              <p className="text-[10px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1">The column names match the Numa Fresh template exactly. Download the template below to ensure your file matches.</p>
             </div>
 
             {/* Preview */}

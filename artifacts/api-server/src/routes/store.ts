@@ -552,18 +552,39 @@ function toSlug(name: string, suffix: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + suffix;
 }
 /**
- * Normalize a CSV/Excel row so column names are matched regardless of
- * capitalisation, spaces, underscores, asterisks, or surrounding whitespace.
- * e.g. "Product Name", "product_name", "name*", "NAME" all map to "name".
+ * Normalize a CSV column header so any capitalisation, spacing, punctuation,
+ * units in parens (e.g. "Price ($)", "Calories (kcal)", "Protein (g)") or
+ * separators like "/" all map to a simple snake_case key.
+ *
+ * Examples:
+ *   "Product Name"            → "product_name"
+ *   "Price ($)"               → "price"
+ *   "Compare Price ($)"       → "compare_price"
+ *   "SKU/Barcode"             → "sku_barcode"
+ *   "Calories (kcal)"         → "calories"
+ *   "Protein (g)"             → "protein"
+ *   "Carbohydrates (g)"       → "carbohydrates"
+ *   "Total Fat (g)"           → "total_fat"
+ *   "Active/Visible"          → "active_visible"
+ *   "Best Before/Expiry"      → "best_before_expiry"
+ *   "Usage/Cooking Directions"→ "usage_cooking_directions"
  */
 function normalizeKey(k: string): string {
-  return k.toLowerCase().replace(/[*\s]+/g, "_").replace(/_{2,}/g, "_").replace(/^_|_$/g, "");
+  return k
+    .replace(/\([^)]*\)/g, "")        // strip parenthetical units: ($), (kcal), (g)
+    .replace(/[/\\|]/g, "_")           // separators → underscore
+    .replace(/[^a-zA-Z0-9_\s]/g, "")  // strip remaining special chars ($, *, #, etc.)
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/_{2,}/g, "_")
+    .replace(/^_|_$/g, "");
 }
 function normalizeRow(row: Record<string, any>): Record<string, any> {
   const out: Record<string, any> = {};
   for (const k of Object.keys(row)) {
     out[normalizeKey(k)] = row[k];
-    out[k] = row[k]; // keep original too for safety
+    out[k] = row[k];
   }
   return out;
 }
@@ -574,6 +595,15 @@ function pick(row: Record<string, any>, ...keys: string[]): any {
     if (v !== undefined && v !== null && v !== "") return v;
   }
   return undefined;
+}
+/** Convert "Yes"/"No"/"true"/"false"/1/0 → boolean. Default to `def` if blank. */
+function parseBool(row: Record<string, any>, def: boolean, ...keys: string[]): boolean {
+  const v = pick(row, ...keys);
+  if (v === undefined) return def;
+  const s = String(v).toLowerCase().trim();
+  if (s === "yes" || s === "true" || s === "1") return true;
+  if (s === "no" || s === "false" || s === "0") return false;
+  return def;
 }
 
 router.post("/products/bulk-import", async (req: AuthRequest, res) => {
@@ -595,18 +625,21 @@ router.post("/products/bulk-import", async (req: AuthRequest, res) => {
     const errors: { row: number; reason: string }[] = [];
 
     for (let i = 0; i < rows.length; i++) {
-      // Normalize all column names so any capitalisation/spacing works
       const row = normalizeRow(rows[i]);
 
-      const name = String(pick(row, "name", "product_name", "product name", "item_name", "item name", "title") ?? "").trim();
-      const rawPrice = pick(row, "price", "unit_price", "unit price", "sale_price", "sale price", "cost");
+      // ── Required fields ──────────────────────────────────────────────────
+      const name = String(pick(row,
+        "product_name", "name", "item_name", "title"
+      ) ?? "").trim();
+
+      const rawPrice = pick(row, "price", "unit_price", "sale_price", "cost");
 
       if (!name) {
-        errors.push({ row: i + 1, reason: "Missing required field: name (check column header is 'name')" });
+        errors.push({ row: i + 1, reason: 'Missing required field: "Product Name"' });
         continue;
       }
       if (rawPrice === undefined || rawPrice === null || String(rawPrice).trim() === "") {
-        errors.push({ row: i + 1, reason: "Missing required field: price (check column header is 'price')" });
+        errors.push({ row: i + 1, reason: 'Missing required field: "Price ($)"' });
         continue;
       }
       const price = Number(rawPrice);
@@ -615,51 +648,121 @@ router.post("/products/bulk-import", async (req: AuthRequest, res) => {
         continue;
       }
 
-      // Product type — accepts any reasonable variation, defaults to PACKAGED
-      const rawType = String(pick(row, "producttype", "product_type", "product type", "type", "category_type") ?? "PACKAGED").toUpperCase().trim().replace(/\s+/g, "_");
-      const productType = (VALID_PRODUCT_TYPES as readonly string[]).includes(rawType) ? rawType as typeof VALID_PRODUCT_TYPES[number] : "PACKAGED";
+      // ── Product type ─────────────────────────────────────────────────────
+      const rawType = String(pick(row,
+        "product_type", "producttype", "type"
+      ) ?? "PACKAGED").toUpperCase().trim().replace(/\s+/g, "_");
+      const productType = (VALID_PRODUCT_TYPES as readonly string[]).includes(rawType)
+        ? rawType as typeof VALID_PRODUCT_TYPES[number]
+        : "PACKAGED";
 
-      // Collect up to 4 image URLs from image1..image4 columns (or legacy 'images' column)
+      // ── Image(s) — "Product Images" column (single URL or filename) ──────
       const imageUrls: string[] = [];
-      const legacyImages = pick(row, "images", "image", "image_url", "imageurl", "photo");
-      if (legacyImages) {
-        if (Array.isArray(legacyImages)) imageUrls.push(...legacyImages.filter(Boolean));
-        else { const v = String(legacyImages).trim(); if (v) imageUrls.push(v); }
+      const imgVal = pick(row,
+        "product_images", "images", "image", "image_url", "photo"
+      );
+      if (imgVal) {
+        if (Array.isArray(imgVal)) {
+          imageUrls.push(...imgVal.map(String).filter(Boolean));
+        } else {
+          const v = String(imgVal).trim();
+          if (v) imageUrls.push(v);
+        }
       }
       for (let n = 1; n <= 4; n++) {
-        const v = String(pick(row, `image${n}`, `image_${n}`, `image ${n}`) ?? "").trim();
+        const v = String(pick(row, `image${n}`, `image_${n}`) ?? "").trim();
         if (v && !imageUrls.includes(v)) imageUrls.push(v);
       }
 
-      // Generate unique slug
+      // ── Tags — comma-separated string ────────────────────────────────────
+      const rawTags = pick(row, "tags", "tag", "keywords");
+      const tags: string[] = rawTags
+        ? String(rawTags).split(",").map((t: string) => t.trim()).filter(Boolean)
+        : [];
+
+      // ── Nutrition JSON ────────────────────────────────────────────────────
+      const calories = pick(row, "calories", "calories_kcal", "kcal", "energy");
+      const protein  = pick(row, "protein", "protein_g");
+      const carbs    = pick(row, "carbohydrates", "carbs", "carbohydrates_g");
+      const fat      = pick(row, "total_fat", "fat", "total_fat_g");
+      const nutritionJson = (calories || protein || carbs || fat) ? {
+        calories: calories ? Number(calories) : null,
+        protein:  protein  ? Number(protein)  : null,
+        carbs:    carbs    ? Number(carbs)     : null,
+        fat:      fat      ? Number(fat)       : null,
+      } : null;
+
+      // ── Slug ──────────────────────────────────────────────────────────────
       const slug = toSlug(name, `${store.id.slice(0, 6)}-${Date.now()}-${i}`);
 
       try {
         const [p] = await db.insert(productsTable).values({
-          storeId: store.id,
+          storeId:    store.id,
           slug,
           name,
-          nameUrdu: String(pick(row, "nameurdu", "name_urdu", "urdu_name", "urduname") ?? "").trim() || null,
-          description: String(pick(row, "description", "desc", "details", "product_description") ?? "").trim() || null,
+          description: String(pick(row,
+            "description", "desc", "product_description"
+          ) ?? "").trim() || null,
           productType,
-          category: String(pick(row, "category", "cat", "product_category") ?? "OTHER").trim() || "OTHER",
+          category: String(pick(row,
+            "category", "cat", "product_category"
+          ) ?? "OTHER").trim() || "OTHER",
+          subcategory: String(pick(row,
+            "subcategory", "sub_category", "sub category"
+          ) ?? "").trim() || null,
           price,
-          comparePrice: (() => { const v = pick(row, "compareprice", "compare_price", "original_price", "was_price", "mrp"); return v ? Number(v) || null : null; })(),
-          unit: String(pick(row, "unit", "unit_of_measure", "uom", "measurement") ?? "piece").trim() || "piece",
-          stockQty: Number(pick(row, "stockqty", "stock_qty", "stock", "quantity", "qty", "inventory") ?? 999) || 999,
-          lowStockThreshold: Number(pick(row, "lowstockthreshold", "low_stock_threshold", "low_stock", "reorder_point") ?? 5) || 5,
+          comparePrice: (() => {
+            const v = pick(row, "compare_price", "compareprice", "original_price", "was_price", "mrp");
+            return v ? Number(v) || null : null;
+          })(),
+          unit: String(pick(row,
+            "unit", "unit_of_measure", "uom"
+          ) ?? "piece").trim() || "piece",
+          stockQty: Number(pick(row,
+            "stock_quantity", "stock_qty", "stockqty", "stock", "quantity", "qty", "inventory"
+          ) ?? 999) || 999,
+          lowStockThreshold: Number(pick(row,
+            "low_stock_alert", "low_stock_threshold", "lowstockthreshold", "low_stock", "reorder_point"
+          ) ?? 5) || 5,
           images: imageUrls,
-          isHalalCertified: String(pick(row, "ishalalcertified", "is_halal_certified", "halal", "halal_certified") ?? "true").toLowerCase() !== "false",
-          isFeatured: String(pick(row, "isfeatured", "is_featured", "featured") ?? "false").toLowerCase() === "true",
-          isActive: true,
+          tags,
+          sku: String(pick(row,
+            "sku_barcode", "sku", "barcode", "upc", "product_code", "item_code"
+          ) ?? "").trim() || null,
+          freshnessLabel: String(pick(row,
+            "freshness_label", "freshnesslabel", "freshness"
+          ) ?? "").trim() || null,
+          productDetails: String(pick(row,
+            "full_product_details", "product_details", "productdetails"
+          ) ?? "").trim() || null,
+          ingredients: String(pick(row,
+            "ingredients", "ingredient_list"
+          ) ?? "").trim() || null,
+          directions: String(pick(row,
+            "usage_cooking_directions", "directions", "cooking_directions", "usage_directions", "instructions"
+          ) ?? "").trim() || null,
+          certifiedFrom: String(pick(row,
+            "certified_from", "certifiedfrom", "certification", "halal_authority"
+          ) ?? "").trim() || null,
+          expiryDate: String(pick(row,
+            "best_before_expiry", "expiry_date", "expirydate", "best_before", "expiry"
+          ) ?? "").trim() || null,
+          nutritionJson,
+          isHalalCertified: parseBool(row, true,
+            "halal_certified", "ishalalcertified", "is_halal_certified", "halal"
+          ),
+          isFeatured: parseBool(row, false,
+            "featured_product", "isfeatured", "is_featured", "featured"
+          ),
+          isActive: parseBool(row, true,
+            "active_visible", "isactive", "is_active", "active", "visible"
+          ),
           isApproved: false,
           approvalStatus: "pending",
-          sku: String(pick(row, "sku", "barcode", "upc", "product_code", "item_code") ?? "").trim() || null,
-          tags: [],
         }).returning();
         inserted.push(p);
       } catch (e: any) {
-        errors.push({ row: i + 1, reason: e?.message ? e.message.slice(0, 120) : "DB insert error" });
+        errors.push({ row: i + 1, reason: e?.message ? e.message.slice(0, 140) : "DB insert error" });
       }
     }
 
