@@ -27,6 +27,7 @@ export const storesTable = pgTable("stores", {
   halalCertNumber: text("halal_cert_number"),
   halalCertExpiry: timestamp("halal_cert_expiry", { withTimezone: true }),
   halalCertDoc: text("halal_cert_doc"),
+  halalCertBody: text("halal_cert_body"),
   commissionRate: real("commission_rate").notNull().default(7.0),
   convenienceFee: real("convenience_fee").notNull().default(2.99),
   curbsideFee: real("curbside_fee").notNull().default(0.0),

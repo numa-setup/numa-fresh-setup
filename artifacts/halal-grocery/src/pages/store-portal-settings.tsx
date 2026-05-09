@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Settings, Bell, Globe, Shield, ChevronRight, Save, Sparkles,
-  MapPin, Camera, Clock, Package, Tag, ToggleLeft, ToggleRight, Layers, Trash2, GripVertical,
+  MapPin, Camera, Clock, Package, Tag, ToggleLeft, ToggleRight, Layers, Trash2, GripVertical, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,6 +78,9 @@ export default function StorePortalSettingsPage() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const initRef = useRef(false);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: sd } = useQuery({
     queryKey: ['portal','settings'],
@@ -209,6 +212,46 @@ export default function StorePortalSettingsPage() {
     emailOnNewOrder: true, emailOnCancellation: true, smsOnNewOrder: false, lowStockAlerts: true,
   });
 
+  // ── Auto-save debounce for Info + Location + Operations ───────
+  const triggerAutoSave = useCallback((payload: Record<string, unknown>) => {
+    if (!initRef.current) return;
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    setAutoSaveStatus('saving');
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        await api.patch('/store/onboarding/settings/store', payload);
+        qc.invalidateQueries({ queryKey: ['portal'] });
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 2500);
+      } catch {
+        setAutoSaveStatus('idle');
+      }
+    }, 1800);
+  }, [qc]);
+
+  useEffect(() => {
+    if (!sd) return;
+    if (!initRef.current) { initRef.current = true; return; }
+    triggerAutoSave({ ...infoForm });
+  }, [infoForm]);
+
+  useEffect(() => {
+    if (!initRef.current) return;
+    triggerAutoSave({ ...locForm });
+  }, [locForm]);
+
+  useEffect(() => {
+    if (!initRef.current) return;
+    triggerAutoSave({
+      ...opsForm,
+      minOrderAmount: Number(opsForm.minOrderAmount) || 0,
+      convenienceFee: Number(opsForm.convenienceFee) || 0,
+      avgPrepTimeMinutes: Number(opsForm.avgPrepTimeMinutes) || 15,
+      slotDurationMinutes: Number(opsForm.slotDurationMinutes) || 30,
+      maxOrdersPerSlot: Number(opsForm.maxOrdersPerSlot) || 5,
+    });
+  }, [opsForm]);
+
   // ── Save helpers ──────────────────────────────────────────────
   const save = async (payload: Record<string, unknown>, extras?: () => Promise<void>) => {
     setSaving(true);
@@ -222,15 +265,26 @@ export default function StorePortalSettingsPage() {
     } finally { setSaving(false); }
   };
 
+  const autoSaveBadge = autoSaveStatus !== 'idle' ? (
+    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-all ${
+      autoSaveStatus === 'saved' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'
+    }`}>
+      {autoSaveStatus === 'saved' ? <><Check className="h-3 w-3" />Auto-saved</> : 'Saving…'}
+    </span>
+  ) : null;
+
   const saveBtn = (label = 'Save Changes') => (
-    <Button
-      className="w-full h-12 hg-gradient-primary border-0 text-white rounded-xl font-semibold gap-2"
-      disabled={saving}
-      type="submit"
-    >
-      <Save className="h-4 w-4" />
-      {saving ? 'Saving…' : label}
-    </Button>
+    <div className="flex items-center gap-3">
+      <Button
+        className="flex-1 h-12 hg-gradient-primary border-0 text-white rounded-xl font-semibold gap-2"
+        disabled={saving}
+        type="submit"
+      >
+        <Save className="h-4 w-4" />
+        {saving ? 'Saving…' : label}
+      </Button>
+      {autoSaveBadge}
+    </div>
   );
 
   const field = (label: string, el: React.ReactNode, hint?: string) => (

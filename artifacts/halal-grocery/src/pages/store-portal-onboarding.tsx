@@ -547,7 +547,7 @@ export default function StorePortalOnboardingPage() {
   // Load existing store data
   useEffect(() => {
     api.get('/store/onboarding/settings').then((store: any) => {
-      if (store) {
+      if (store && store.id) {
         setFormData((prev: any) => ({ ...prev, ...store }));
         setStoreStatus(store.storeStatus || null);
       }

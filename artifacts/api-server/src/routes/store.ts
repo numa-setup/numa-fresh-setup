@@ -982,9 +982,9 @@ router.put("/settings", async (req: AuthRequest, res) => {
     if (pickupAvailable !== undefined) updateData.pickupAvailable = pickupAvailable;
     if (curbsideAvailable !== undefined) updateData.curbsideAvailable = curbsideAvailable;
     if (deliveryAvailable !== undefined) updateData.deliveryAvailable = deliveryAvailable;
-    if (deliveryFee !== undefined) updateData.deliveryFee = String(deliveryFee);
-    if (curbsideFee !== undefined) updateData.curbsideFee = String(curbsideFee);
-    if (minOrderAmount !== undefined) updateData.minOrderAmount = String(minOrderAmount);
+    if (deliveryFee !== undefined) updateData.deliveryFee = parseFloat(deliveryFee) || 0;
+    if (curbsideFee !== undefined) updateData.curbsideFee = parseFloat(curbsideFee) || 0;
+    if (minOrderAmount !== undefined) updateData.minOrderAmount = parseFloat(minOrderAmount) || 0;
     if (avgPrepTimeMinutes !== undefined) updateData.avgPrepTimeMinutes = avgPrepTimeMinutes;
     if (businessHours !== undefined) updateData.businessHours = businessHours;
 

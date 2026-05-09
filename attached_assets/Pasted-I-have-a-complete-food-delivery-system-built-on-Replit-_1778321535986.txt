@@ -1,0 +1,63 @@
+I have a complete food delivery system built on Replit with Admin Portal, Seller Portal, and Customer Website. 
+
+CRITICAL ISSUES TO FIX (Priority 1):
+
+1. **Auto-save/Deployment Error**: Getting HTML/DOCTYPE errors on certain pages. Need to verify all HTML structure is correct and no conflicting scripts exist.
+
+2. **Customer Scheduled Orders Page** (`/my-account/scheduled`):
+   - Currently shows STATIC DATA only
+   - Buttons (Edit, Pause, Delete, Schedule Now) are NOT FUNCTIONAL
+   - Need to: Fetch real scheduled orders from database, make all buttons fully functional with proper data updates
+
+3. **Place Order Error** - "Failed to create order":
+   - Customer adds products to cart successfully
+   - When clicking "Place Order", getting error "Failed to create order"
+   - Check backend order creation endpoint, validation, and database write operations
+   - Ensure complete order flow works (cart → order placement → confirmation)
+
+4. **Seller Portal - Orders Not Loading**:
+   - Getting "Failed to load orders" error on seller orders page
+   - Check orders API endpoint, authentication, and data fetching
+   - Verify seller can see their assigned orders
+
+5. **Store Setup Walkthrough Error**:
+   - When seller creates new store, walkthrough screens show errors
+   - "Submit for Review" button at end also gives error
+   - Check form validation, API calls, and database writes for store creation
+   - Ensure walkthrough completes without any errors
+
+SYSTEM ENHANCEMENTS:
+
+6. **Font System Upgrade**:
+   - Replace all fonts across entire system (Admin Portal, Seller Portal, Customer Website)
+   - Use a professional FOOD-RELATED font family
+   - Recommended: 'Playfair Display' for headings, 'Poppins' or 'Inter' for body text
+   - Apply consistently to ALL components, pages, and UI elements
+   - Create a global CSS variable system for fonts if not already present
+
+7. **Auto-save Functionality**:
+   - Add auto-save feature for:
+     * Customer addresses and preferences
+     * Seller store information edits
+     * Admin configurations
+   - Implement debounced auto-save (every 2-3 seconds while typing)
+   - Show visual feedback when data is saved
+   - Cache locally to prevent data loss
+
+DELIVERABLES:
+- All 5 critical issues must be completely resolved
+- No error messages should appear during normal usage
+- All features must be fully functional
+- Font changes applied system-wide
+- Auto-save working smoothly
+- Code should be clean and well-commented
+
+TESTING:
+- Test complete order flow: Add to cart → Place Order → See in orders
+- Test all scheduled order buttons work
+- Test seller can see and manage orders
+- Test seller can complete store setup without errors
+- Verify fonts are applied everywhere
+- Test auto-save on multiple pages
+
+Please fix all issues and ensure the system is production-ready with no errors.
