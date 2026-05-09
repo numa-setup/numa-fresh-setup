@@ -1,6 +1,6 @@
 import { useParams, Link, useLocation } from 'wouter';
 import { useState } from 'react';
-import { Package, MapPin, Clock, CheckCircle2, XCircle, ArrowLeft, Truck, RotateCcw } from 'lucide-react';
+import { Package, MapPin, Clock, CheckCircle2, XCircle, ArrowLeft, Truck, RotateCcw, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useOrder } from '@/hooks/useOrders';
@@ -8,6 +8,7 @@ import { useCart } from '@/contexts/CartContext';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { OrderQRCode } from '@/components/OrderQRCode';
+import { printPickupSlip } from '@/utils/printPickupSlip';
 
 const STATUS_STEPS = ['PENDING', 'STORE_CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'COMPLETED'];
 
@@ -246,7 +247,7 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <Button
             className="flex-1 hg-gradient-primary border-0 text-white gap-1.5"
             onClick={() => reorder(order.id)}
@@ -254,6 +255,14 @@ export default function OrderDetailPage() {
           >
             <RotateCcw className="h-4 w-4" />
             {reordering ? 'Adding…' : 'Reorder'}
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1 gap-1.5"
+            onClick={() => printPickupSlip(order)}
+          >
+            <Printer className="h-4 w-4" />
+            Invoice
           </Button>
           <Link href="/orders" className="flex-1">
             <Button variant="outline" className="w-full">All Orders</Button>

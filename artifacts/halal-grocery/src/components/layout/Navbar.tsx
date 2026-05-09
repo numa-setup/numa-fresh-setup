@@ -146,7 +146,9 @@ export function Navbar() {
                 </DropdownMenu>
               ) : (
                 <div className="hidden sm:flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setShowOtpModal(true)}>Sign In</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowOtpModal(true)}>
+                    <User className="mr-1.5 h-4 w-4" />My Account
+                  </Button>
                   <Button size="sm" className="hg-gradient-primary border-0 text-white hover:opacity-90" onClick={() => setShowOtpModal(true)}>Get Started</Button>
                 </div>
               )}
@@ -220,7 +222,7 @@ export function Navbar() {
                   </div>
                 ) : (
                   <div className="flex gap-2 pt-2">
-                    <Button variant="outline" className="flex-1 w-full rounded-xl" size="sm" onClick={() => { setShowOtpModal(true); setMobileOpen(false); }}>Sign In</Button>
+                    <Button variant="outline" className="flex-1 w-full rounded-xl" size="sm" onClick={() => { setShowOtpModal(true); setMobileOpen(false); }}>My Account</Button>
                     <Button size="sm" className="flex-1 w-full hg-gradient-primary border-0 text-white rounded-xl" onClick={() => { setShowOtpModal(true); setMobileOpen(false); }}>Get Started</Button>
                   </div>
                 )}

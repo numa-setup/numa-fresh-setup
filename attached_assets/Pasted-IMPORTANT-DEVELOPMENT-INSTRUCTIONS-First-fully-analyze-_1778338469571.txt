@@ -1,0 +1,151 @@
+IMPORTANT DEVELOPMENT INSTRUCTIONS:
+
+- First fully analyze the existing codebase, routing structure, authentication flow, state management, database connections, and UI components before making any changes.
+- DO NOT break, replace, redesign, or modify any existing working functionality.
+- DO NOT change existing business logic unless it is directly related to the requested fixes below.
+- DO NOT install new packages, libraries, dependencies, database migrations, or make architectural changes without explicit confirmation first.
+- Preserve all existing:
+  - Authentication flows
+  - OTP/passwordless login system
+  - Session handling
+  - Styling/UI
+  - Database structure
+  - API behavior
+  - Existing routes
+  - Seller/customer flows
+- Only fix the issues specifically mentioned below.
+- All existing working functionality must continue working exactly as before.
+- Avoid unnecessary refactoring.
+- Maintain responsive design and production stability.
+- After implementing each fix, thoroughly test:
+  - logged-in state
+  - logged-out state
+  - mobile responsiveness
+  - refresh behavior
+  - OTP authentication flow
+  - seller/customer switching
+  - invoice printing/downloading
+- Ensure there are:
+  - No console errors
+  - No hydration issues
+  - No route conflicts
+  - No duplicate auth states
+  - No UI glitches
+  - No broken functionality
+
+==================================================
+TASKS TO FIX
+==================================================
+
+1. Fix `/signup` Route Behavior
+
+Current Issue:
+- Opening `/signup` shows the old signup page.
+
+Required Fix:
+- `/signup` must open the exact same page and functionality as `/sign-up`.
+- Both routes should behave identically.
+- Preserve the existing OTP/passwordless authentication system.
+- Maintain the same validation, styling, UI, and behavior already used in `/sign-up`.
+
+--------------------------------------------------
+
+2. Remove Unwanted Footer Links
+
+Current Issue:
+- In the footer section "For Businesses", the following links are appearing:
+  - Signin
+  - Create Account
+
+Required Fix:
+- Remove both of these links ONLY from the "For Businesses" section.
+- Do not affect authentication functionality elsewhere.
+
+--------------------------------------------------
+
+3. Improve "My Account" Behavior
+
+Required Behavior:
+
+If the user is already signed in:
+- Clicking "My Account" should directly open the user's account/dashboard/profile page.
+
+If the user is NOT signed in:
+- Clicking "My Account" should open the existing OTP/passwordless login/signup flow.
+- Reuse the current authentication modal/page.
+- Do not create a new auth system.
+
+--------------------------------------------------
+
+4. Fix Cart Persistence on Refresh
+
+Current Issue:
+- Products added to cart disappear after page refresh.
+
+Required Fix:
+- Cart items must persist after refresh.
+- Preserve the existing cart structure and functionality.
+- Handle both:
+  - guest users
+  - logged-in users
+- Use the existing architecture/patterns already used in the project.
+- Do not break checkout/cart logic.
+
+--------------------------------------------------
+
+5. Customer-to-Seller Switching Flow
+
+Required Behavior:
+
+If a user is logged in as a customer and clicks "List Your Store":
+
+Step 1:
+- Show a confirmation popup/modal:
+  "You are currently logged in as a customer. Please logout first to continue as a seller."
+
+Step 2:
+- Show options:
+  - Cancel
+  - Logout & Continue
+
+Step 3:
+- If user confirms:
+  - Logout the current customer session properly.
+  - Redirect user to `/seller`
+
+IMPORTANT:
+- Preserve all existing session/authentication logic.
+- Do not break seller onboarding/login flow.
+
+--------------------------------------------------
+
+6. Enable Invoice Access for Customers
+
+Current Issue:
+- Sellers can print/download order invoices/slips.
+- Customers currently cannot.
+
+Required Fix:
+- Customers should also have:
+  - Print Invoice
+  - Download Invoice
+options in:
+  - order history
+  - order details
+  - relevant customer order pages
+
+Requirements:
+- Reuse the existing invoice template/system already used for sellers.
+- Maintain consistent invoice formatting.
+- Ensure print/download works properly.
+- Keep mobile responsiveness intact.
+
+==================================================
+FINAL REQUIREMENTS
+==================================================
+
+- Keep the implementation clean and production-ready.
+- Do not modify unrelated files/components.
+- Do not remove any existing functionality.
+- Existing working systems must remain fully functional.
+- Only implement the requested fixes above.

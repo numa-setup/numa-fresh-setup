@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Shield,
   Award,
@@ -45,10 +45,27 @@ const FOOTER_LINKS = {
 };
 
 export function Footer() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const cms = useCms();
+  const [, setLocation] = useLocation();
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [showSellerSwitch, setShowSellerSwitch] = useState(false);
+
+  const handleListYourStore = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isAuthenticated && user?.role === 'CUSTOMER') {
+      setShowSellerSwitch(true);
+    } else {
+      setLocation('/seller');
+    }
+  };
+
+  const handleLogoutAndContinue = async () => {
+    setShowSellerSwitch(false);
+    await logout();
+    setLocation('/seller');
+  };
   const accountLinks = FOOTER_LINKS.account.filter(
     (link) => !(link.requiresGuest && isAuthenticated),
   );
@@ -158,35 +175,14 @@ export function Footer() {
                 <ul className="space-y-2.5">
                   {FOOTER_LINKS.business.map((link) => (
                     <li key={link.label}>
-                      <Link
-                        href={link.href}
-                        className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors"
+                      <button
+                        onClick={handleListYourStore}
+                        className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors text-left"
                       >
                         {link.label}
-                      </Link>
+                      </button>
                     </li>
                   ))}
-                  <li>
-                    <p className="min-h-[1.5rem] flex items-center text-white/70 text-sm font-medium mt-1">My Account</p>
-                    <ul className="space-y-2 mt-1 pl-2">
-                      <li>
-                        <button
-                          onClick={() => setShowOtpModal(true)}
-                          className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors text-left"
-                        >
-                          Sign In
-                        </button>
-                      </li>
-                      <li>
-                        <button
-                          onClick={() => setShowOtpModal(true)}
-                          className="min-h-[1.5rem] flex items-center text-white/55 text-sm hover:text-white transition-colors text-left"
-                        >
-                          Create Account
-                        </button>
-                      </li>
-                    </ul>
-                  </li>
                 </ul>
               </div>
               <div>
@@ -296,6 +292,32 @@ export function Footer() {
       <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
         <DialogContent className="max-w-lg w-[calc(100vw-2rem)] p-0 overflow-y-auto max-h-[90dvh] rounded-3xl border-border/50">
           <ContactUs inModal />
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer-to-Seller Switch Confirmation */}
+      <Dialog open={showSellerSwitch} onOpenChange={setShowSellerSwitch}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <div className="p-6">
+            <h2 className="font-serif font-bold text-xl mb-2">Switch to Seller Account?</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              You are currently signed in as a customer. To list your store, you need to sign out first and then create or sign into a seller account.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleLogoutAndContinue}
+                className="w-full py-2.5 rounded-xl hg-gradient-primary text-white text-sm font-semibold hover:opacity-90 transition"
+              >
+                Sign Out &amp; Continue to Seller Portal
+              </button>
+              <button
+                onClick={() => setShowSellerSwitch(false)}
+                className="w-full py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </footer>

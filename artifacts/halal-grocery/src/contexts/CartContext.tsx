@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode, useMemo } from 'react';
 import type { Product } from '@/lib/types';
 
 export type ReplacementPreference = 'specific' | 'best_match' | 'refund' | null;
@@ -11,7 +11,6 @@ export interface CartItem {
   weightKg?: number;
   replacementPreference?: ReplacementPreference;
   replacementProductId?: string;
-  /** Round 10 / Fix #4 — generic per-item note from customer to shopper. */
   noteForShopper?: string;
 }
 
@@ -33,11 +32,39 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+const CART_STORAGE_KEY = 'numa-fresh-cart-v1';
+
+function loadPersistedCart(): { items: CartItem[]; storeId: string | null; storeSlug: string | null; storeName: string | null } {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        items: Array.isArray(parsed.items) ? parsed.items : [],
+        storeId: parsed.storeId ?? null,
+        storeSlug: parsed.storeSlug ?? null,
+        storeName: parsed.storeName ?? null,
+      };
+    }
+  } catch {
+  }
+  return { items: [], storeId: null, storeSlug: null, storeName: null };
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [storeId, setStoreId] = useState<string | null>(null);
-  const [storeSlug, setStoreSlug] = useState<string | null>(null);
-  const [storeName, setStoreName] = useState<string | null>(null);
+  const initial = loadPersistedCart();
+
+  const [items, setItems] = useState<CartItem[]>(initial.items);
+  const [storeId, setStoreId] = useState<string | null>(initial.storeId);
+  const [storeSlug, setStoreSlug] = useState<string | null>(initial.storeSlug);
+  const [storeName, setStoreName] = useState<string | null>(initial.storeName);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, storeId, storeSlug, storeName }));
+    } catch {
+    }
+  }, [items, storeId, storeSlug, storeName]);
 
   const setStoreInfo = useCallback((id: string, slug: string, name: string) => {
     setStoreId(id);

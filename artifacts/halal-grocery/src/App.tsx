@@ -242,7 +242,7 @@ function Router() {
         <Route path="/seller/login" component={StoreLoginPage} />
         <Route path="/seller" component={StoreLoginPage} />
         <Route path="/admin-login" component={AdminRedirect} />
-        <Route path="/signup" component={SignupPage} />
+        <Route path="/signup" component={CreateAccountPage} />
         <Route path="/signin" component={LoginPage} />
         <Route path="/get-started" component={CreateAccountPage} />
         <Route path="/create-account" component={CreateAccountPage} />
