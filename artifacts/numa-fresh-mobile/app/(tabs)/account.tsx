@@ -1,4 +1,4 @@
-import { ComponentProps } from 'react';
+import { ComponentProps, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform,
 } from 'react-native';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useAuth } from '@/contexts/AuthContext';
+import { getNotificationPermissionStatus } from '@/lib/pushNotifications';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -32,6 +33,13 @@ export default function AccountScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, logout, isAuthenticated } = useAuth();
+  const [pushPermission, setPushPermission] = useState<string>('granted');
+
+  useEffect(() => {
+    if (isAuthenticated && Platform.OS !== 'web') {
+      getNotificationPermissionStatus().then(setPushPermission);
+    }
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -95,6 +103,18 @@ export default function AccountScreen() {
           )}
         </View>
       </View>
+
+      {Platform.OS !== 'web' && pushPermission === 'undetermined' && (
+        <TouchableOpacity
+          style={[st.pushBanner, { backgroundColor: colors.primaryPale, borderColor: colors.primary }]}
+          onPress={() => router.push('/account/notifications')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="notifications-outline" size={18} color={colors.primary} />
+          <Text style={[st.pushBannerText, { color: colors.primary }]}>Enable push notifications for order updates</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+        </TouchableOpacity>
+      )}
 
       <View style={[st.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
         {NAV_ITEMS.map((item, index) => (
@@ -163,4 +183,9 @@ const styles = (c: ReturnType<typeof useColors>) => StyleSheet.create({
   },
   signOutText: { fontSize: 15, fontWeight: '700' },
   version: { textAlign: 'center', fontSize: 12, marginBottom: 8 },
+  pushBanner: {
+    marginHorizontal: 16, marginBottom: 16, borderRadius: 14, borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12,
+  },
+  pushBannerText: { flex: 1, fontSize: 13, fontWeight: '600' },
 });

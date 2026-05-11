@@ -1,6 +1,7 @@
 import '../global.css';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Stack, useSegments, useRouter } from 'expo-router';
+import type { Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,6 +10,7 @@ import { useColorScheme, TouchableOpacity, View, Text, StyleSheet, Platform } fr
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter as useRouterHook } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import {
   PlayfairDisplay_700Bold,
   PlayfairDisplay_400Regular,
@@ -16,6 +18,7 @@ import {
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { CartProvider, useCart } from '@/contexts/CartContext';
 import { Colors } from '@/constants/colors';
+import { getNotificationPermissionStatus, registerForPushNotificationsAsync, savePushTokenToServer } from '@/lib/pushNotifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +32,7 @@ function SessionGate() {
   const { isAuthenticated, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -39,6 +43,41 @@ function SessionGate() {
       router.replace('/(auth)/login');
     }
   }, [isAuthenticated, isLoading, segments, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated || Platform.OS === 'web') return;
+    getNotificationPermissionStatus().then((status) => {
+      if (status === 'granted') {
+        registerForPushNotificationsAsync()
+          .then((token) => { if (token) return savePushTokenToServer(token); })
+          .catch(() => {});
+      }
+    }).catch(() => {});
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (!response) return;
+      const data = response.notification.request.content.data as Record<string, unknown>;
+      const screen = data?.screen as string | undefined;
+      if (screen) {
+        router.push(('/' + screen) as Href);
+      }
+    }).catch(() => {});
+
+    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as Record<string, unknown>;
+      const screen = data?.screen as string | undefined;
+      if (screen) {
+        router.push(('/' + screen) as Href);
+      }
+    });
+    return () => {
+      notificationResponseListener.current?.remove();
+    };
+  }, [router]);
 
   return null;
 }

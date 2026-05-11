@@ -9,6 +9,7 @@ import { authenticate, authorize, AuthRequest } from "../middlewares/authenticat
 import { generateOrderNumber } from "../lib/auth.js";
 import { emitToStore, emitToAdmin } from "../socket/index.js";
 import { createNotification } from "./notifications.js";
+import { sendExpoPushNotification } from "../lib/expoPush.js";
 import QRCode from "qrcode";
 
 const router = Router();
@@ -461,6 +462,37 @@ router.patch("/store-portal/:orderId/status", authenticate, authorize("STORE_OWN
         note: note || null,
         createdBy: req.user!.userId,
       });
+    }
+
+    if (status === "READY_FOR_PICKUP" || status === "OUT_FOR_DELIVERY") {
+      const pushMessages: Record<string, { title: string; body: string }> = {
+        READY_FOR_PICKUP: {
+          title: "Your order is ready!",
+          body: `Order #${order.orderNumber} is ready for pickup. Come grab it!`,
+        },
+        OUT_FOR_DELIVERY: {
+          title: "Your order is on the way!",
+          body: `Order #${order.orderNumber} is out for delivery. Expect it soon!`,
+        },
+      };
+      const pushMsg = pushMessages[status];
+      if (pushMsg) {
+        db.select({ expoPushToken: usersTable.expoPushToken })
+          .from(usersTable)
+          .where(eq(usersTable.id, order.customerId))
+          .limit(1)
+          .then(([customer]) => {
+            if (customer?.expoPushToken) {
+              return sendExpoPushNotification(
+                customer.expoPushToken,
+                pushMsg.title,
+                pushMsg.body,
+                { orderId: order.id, screen: "orders/" + order.id + "/track" },
+              );
+            }
+          })
+          .catch(() => {});
+      }
     }
 
     const fullOrder = await buildOrderResponse(updated);

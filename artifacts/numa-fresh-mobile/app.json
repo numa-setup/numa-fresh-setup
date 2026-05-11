@@ -32,7 +32,17 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#3FB196",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "Numa Fresh"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

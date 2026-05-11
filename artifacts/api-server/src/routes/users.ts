@@ -28,9 +28,16 @@ router.get("/profile", authenticate, async (req: AuthRequest, res) => {
 // PATCH /api/users/profile
 router.patch("/profile", authenticate, async (req: AuthRequest, res) => {
   try {
-    const { firstName, lastName, phone, preferredLanguage } = req.body;
+    const { firstName, lastName, phone, preferredLanguage, expoPushToken } = req.body;
+    const updatePayload: Partial<typeof usersTable.$inferInsert> = { updatedAt: new Date() };
+    if (firstName !== undefined) updatePayload.firstName = firstName;
+    if (lastName !== undefined) updatePayload.lastName = lastName;
+    if (phone !== undefined) updatePayload.phone = phone;
+    if (preferredLanguage !== undefined) updatePayload.preferredLanguage = preferredLanguage;
+    if (expoPushToken !== undefined) updatePayload.expoPushToken = expoPushToken ?? null;
+
     const [updated] = await db.update(usersTable)
-      .set({ firstName, lastName, phone, preferredLanguage, updatedAt: new Date() })
+      .set(updatePayload)
       .where(eq(usersTable.id, req.user!.userId))
       .returning();
 

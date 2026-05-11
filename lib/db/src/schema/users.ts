@@ -22,6 +22,7 @@ export const usersTable = pgTable("users", {
   loyaltyPoints: integer("loyalty_points").notNull().default(0),
   doNotSell: boolean("do_not_sell").notNull().default(false),
   limitSensitiveData: boolean("limit_sensitive_data").notNull().default(false),
+  expoPushToken: text("expo_push_token"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

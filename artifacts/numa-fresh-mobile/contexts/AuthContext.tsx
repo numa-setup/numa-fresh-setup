@@ -1,7 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
+import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api, loadTokens, saveTokens, clearTokens, getAccessToken, setOnUnauthorizedCallback } from '@/lib/api';
 import type { User } from '@/lib/types';
+import { getNotificationPermissionStatus, registerForPushNotificationsAsync, savePushTokenToServer } from '@/lib/pushNotifications';
 
 interface AuthContextValue {
   user: User | null;
@@ -66,6 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     await saveTokens(data.accessToken, data.refreshToken);
     setUser(data.user);
+    if (Platform.OS !== 'web') {
+      getNotificationPermissionStatus().then((status) => {
+        if (status === 'granted') {
+          return registerForPushNotificationsAsync()
+            .then((token) => { if (token) return savePushTokenToServer(token); });
+        }
+      }).catch(() => {});
+    }
     return data.user;
   }, []);
 
@@ -76,10 +86,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     await saveTokens(data.accessToken, data.refreshToken);
     setUser(data.user);
+    if (Platform.OS !== 'web') {
+      getNotificationPermissionStatus().then((status) => {
+        if (status === 'granted') {
+          return registerForPushNotificationsAsync()
+            .then((token) => { if (token) return savePushTokenToServer(token); });
+        }
+      }).catch(() => {});
+    }
     return data.user;
   }, []);
 
   const logout = useCallback(async () => {
+    if (Platform.OS !== 'web') {
+      try { await api.patch('/users/profile', { expoPushToken: null }); } catch {}
+    }
     try { await api.post('/auth/logout'); } catch {}
     await clearTokens();
     setUser(null);

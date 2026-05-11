@@ -6,6 +6,7 @@ import {
 import { eq, and, desc, count, sql, inArray, gte, lt, between, or, ilike } from "drizzle-orm";
 import { authenticate, authorize, AuthRequest } from "../middlewares/authenticate.js";
 import { createNotification } from "./notifications.js";
+import { sendExpoPushNotification } from "../lib/expoPush.js";
 
 const router = Router();
 
@@ -233,7 +234,7 @@ router.patch("/orders/:id/status", async (req: AuthRequest, res) => {
     if (!store) { res.status(404).json({ error: "NoStore" }); return; }
 
     const { status, note } = req.body;
-    const validStatuses = ["STORE_CONFIRMED", "IN_PREPARATION", "REPLACEMENT_HANDLING", "READY_FOR_PICKUP", "COMPLETED", "CANCELLED", "REFUNDED"];
+    const validStatuses = ["STORE_CONFIRMED", "IN_PREPARATION", "REPLACEMENT_HANDLING", "READY_FOR_PICKUP", "OUT_FOR_DELIVERY", "COMPLETED", "CANCELLED", "REFUNDED"];
     if (!validStatuses.includes(status)) { res.status(400).json({ error: "InvalidStatus" }); return; }
 
     const [order] = await db.select().from(ordersTable).where(and(eq(ordersTable.id, req.params.id), eq(ordersTable.storeId, store.id))).limit(1);
@@ -271,6 +272,37 @@ router.patch("/orders/:id/status", async (req: AuthRequest, res) => {
       { orderId: order.id, orderNumber: order.orderNumber, status },
       order.id
     ).catch(() => {});
+
+    if (status === "READY_FOR_PICKUP" || status === "OUT_FOR_DELIVERY") {
+      const pushMessages: Record<string, { title: string; body: string }> = {
+        READY_FOR_PICKUP: {
+          title: "Your order is ready!",
+          body: `Order #${order.orderNumber} is ready for pickup. Come grab it!`,
+        },
+        OUT_FOR_DELIVERY: {
+          title: "Your order is on the way!",
+          body: `Order #${order.orderNumber} is out for delivery. Expect it soon!`,
+        },
+      };
+      const pushMsg = pushMessages[status];
+      if (pushMsg) {
+        db.select({ expoPushToken: usersTable.expoPushToken })
+          .from(usersTable)
+          .where(eq(usersTable.id, order.customerId))
+          .limit(1)
+          .then(([customer]) => {
+            if (customer?.expoPushToken) {
+              return sendExpoPushNotification(
+                customer.expoPushToken,
+                pushMsg.title,
+                pushMsg.body,
+                { orderId: order.id, screen: "orders/" + order.id + "/track" },
+              );
+            }
+          })
+          .catch(() => {});
+      }
+    }
 
     res.json({ success: true, status });
   } catch (err) {
@@ -345,6 +377,22 @@ router.post("/orders/:id/mark-ready", async (req: AuthRequest, res) => {
       .set({ status: "READY_FOR_PICKUP", readyAt: new Date(), pickupQrCode: pickupCode, updatedAt: new Date() })
       .where(eq(ordersTable.id, order.id));
     await db.insert(orderStatusHistoryTable).values({ orderId: order.id, status: "READY_FOR_PICKUP", note: "Order ready for customer pickup" });
+
+    db.select({ expoPushToken: usersTable.expoPushToken })
+      .from(usersTable)
+      .where(eq(usersTable.id, order.customerId))
+      .limit(1)
+      .then(([customer]) => {
+        if (customer?.expoPushToken) {
+          return sendExpoPushNotification(
+            customer.expoPushToken,
+            "Your order is ready!",
+            `Order #${order.orderNumber} is ready for pickup. Come grab it!`,
+            { orderId: order.id, screen: "orders/" + order.id + "/track" },
+          );
+        }
+      })
+      .catch(() => {});
 
     res.json({ success: true, status: "READY_FOR_PICKUP", pickupCode });
   } catch (err) {
