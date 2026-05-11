@@ -1,6 +1,6 @@
 import { pgTable, text, boolean, real, integer, timestamp, json, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { storesTable } from "./stores";
 
 export const productTypeEnum = pgEnum("product_type", ["PACKAGED", "FRESH_MEAT", "PRODUCE", "FROZEN", "SPICES", "BAKERY", "DAIRY", "BEVERAGES"]);

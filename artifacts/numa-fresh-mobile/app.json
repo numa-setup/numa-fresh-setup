@@ -37,6 +37,9 @@
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "numafresh"
+    "scheme": "numafresh",
+    "extra": {
+      "eas": { "projectId": "numa-fresh-mobile" }
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { pgTable, text, boolean, real, integer, timestamp, json, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod/v4";
+import { z } from "zod";
 import { usersTable } from "./users";
 import { storesTable } from "./stores";
 import { productsTable } from "./products";
