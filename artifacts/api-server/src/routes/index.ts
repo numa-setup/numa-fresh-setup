@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health.js";
 import authRouter from "./auth.js";
+import mealPlannerRouter from "./meal-planner.js";
 import authOtpRouter from "./auth-otp.js";
 import storesRouter from "./stores.js";
 import productsRouter from "./products.js";
@@ -54,5 +55,6 @@ router.use(nearbyStoresRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/pickup", pickupRouter);
 router.use(stripeCheckoutRouter);
+router.use(mealPlannerRouter);
 
 export default router;
