@@ -89,7 +89,7 @@ export default function CartScreen() {
               >
                 <View style={[st.itemImg, { backgroundColor: colors.muted }]}>
                   {img ? (
-                    <Image source={{ uri: img }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+                    <Image source={{ uri: img }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                   ) : (
                     <Ionicons name="leaf" size={18} color={colors.primary} />
                   )}

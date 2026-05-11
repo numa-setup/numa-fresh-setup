@@ -34,7 +34,7 @@ function StoreListItem({ store }: { store: Store }) {
     >
       <View style={[s.itemImg, { backgroundColor: colors.muted }]}>
         {img && !imgError ? (
-          <Image source={{ uri: img }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} onError={() => setImgError(true)} />
+          <Image source={{ uri: img }} style={{ width: '100%', height: '100%' }} resizeMode="cover" onError={() => setImgError(true)} />
         ) : (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primaryPale }}>
             <Ionicons name="storefront" size={24} color={colors.primary} />

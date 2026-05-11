@@ -383,7 +383,10 @@ const styles = (c: ReturnType<typeof useColors>) => StyleSheet.create({
   searchContainer: {
     flexDirection: 'row', alignItems: 'center', marginHorizontal: 20, marginBottom: 16,
     borderRadius: 14, paddingHorizontal: 14, height: 48, gap: 10,
-    elevation: 2,
+    ...Platform.select({
+      web: { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
+      default: { elevation: 2 },
+    }),
   },
   searchInput: { flex: 1, fontSize: 15 },
   heroBanner: {
