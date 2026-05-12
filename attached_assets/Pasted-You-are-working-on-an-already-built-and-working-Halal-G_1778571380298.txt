@@ -1,0 +1,219 @@
+You are working on an already-built and working "Halal Grocery System" (multi-vendor). 
+CRITICAL RULE: Only fix/change what is explicitly mentioned below. Do NOT refactor, 
+restructure, or touch anything else. Existing working features must remain intact.
+
+=======================================================================
+1. CLEAN SEO-FRIENDLY URL STRUCTURE
+=======================================================================
+Current problem: URLs have random numbers/characters.
+Required URL structure:
+- Store page:    /store/[store-slug]
+- Product page:  /store/[store-slug]/[product-slug]
+- Slugs must be: lowercase, hyphen-separated, no special chars, no IDs, no random strings
+- Example: /store/al-madina-grocery/organic-basmati-rice-5kg
+
+Steps to implement:
+a) Add a "slug" field to Store model (auto-generate from store name, ensure unique)
+b) Add a "slug" field to Product model (auto-generate from product name, ensure unique per store)
+c) Update all routing/navigation to use slugs instead of IDs
+d) Update all <Link> and router.push() calls across customer site, admin, and seller portal
+e) Add redirect from old ID-based URLs to new slug URLs (for any bookmarks)
+f) Slugify function: lowercase, replace spaces with hyphens, remove special chars, 
+   handle duplicates by appending -2, -3 etc.
+g) Update sitemap or meta tags if present for SEO
+
+=======================================================================
+2. ADMIN PORTAL — FIXES
+=======================================================================
+A) "Reviews (Order)" — Failed to load reviews ERROR:
+   - Debug and fix the API endpoint fetching order reviews
+   - Check if the query/join is correct (reviews linked to orders, not just products)
+   - Ensure proper error handling and show reviews correctly in the table
+   - Test: reviews should load and display without error
+
+B) "Stores Dropdown" — Stores not showing:
+   - Fix the dropdown in Admin portal where stores should be listed
+   - Check the API call fetching stores for this dropdown
+   - Ensure data is mapped correctly to dropdown options
+   - Stores should appear in all relevant admin dropdowns
+
+=======================================================================
+3. CUSTOMER WEBSITE — PRODUCT DETAIL PAGE IMAGE SLIDER
+=======================================================================
+Current problem: No arrow buttons on image slider, thumbnail dots visible at bottom.
+Required changes:
+- Add LEFT ( ‹ ) and RIGHT ( › ) arrow buttons on the product image slider
+- Remove the bottom thumbnail dot/switch indicators
+- Keep auto-slide functionality
+- Arrows must be clearly visible, positioned on left and right edges of image
+- On mobile: arrows should still be visible and tappable
+
+=======================================================================
+4. STORE OWNER (SELLER) PORTAL — ORDERS & PRODUCTS
+=======================================================================
+A) New Orders display:
+   - Show NEW/PENDING orders as separate cards at the top of the orders section
+   - Each card must show: Order ID, Customer name, items count, total amount, time received
+   - Card actions: [ACCEPT] and [REJECT] buttons prominently visible
+   - After accept/reject, card moves to appropriate section
+
+B) Products with no accepted order:
+   - In the Products section, for each product that has NEVER had an accepted order,
+     show a small badge or indicator
+   - Add quick action: [Accept Orders] or note showing order status for that product
+
+C) FULL ORDER DETAIL — Must show to BOTH Seller AND Admin:
+   When viewing any order detail, the following customer-provided info must ALL be visible:
+   - ✅ Delivery Address (full address customer entered)
+   - ✅ Product Replacement preference (what customer selected: substitute/refund/contact me)
+   - ✅ Special Instructions (free text customer wrote)
+   - ✅ Checkout options selected (e.g., delivery/pickup, payment method)
+   - ✅ How to Order preference (if customer selected any option)
+   - ✅ Selected Time Slot (date + time window customer chose)
+   - ✅ Order Items list with quantities and prices
+   - ✅ Customer contact info (name, phone, email)
+   Layout: Clean card-based detail view. Nothing should be hidden or missing.
+
+D) Order status on Product list — Dynamic:
+   - Currently shows "Pending" even after order is complete
+   - Fix: Status must update dynamically: Pending → Confirmed → Prepared → Completed
+   - Use real order status from database, not hardcoded text
+
+=======================================================================
+5. QR CODE — FULL WORKING IMPLEMENTATION
+=======================================================================
+Current problem: QR code is not working for customers, sellers, or admin.
+
+Implement QR code following world-class grocery system standards (like Instacart/Amazon Fresh pickup):
+
+A) When to show QR: When order status = "Ready for Pickup"
+
+B) QR Code must encode a JSON object containing:
+   {
+     "orderId": "ORD-2024-XXXXX",
+     "pickupCode": "4-6 digit unique code",
+     "customerName": "Full Name",
+     "storeName": "Store Name",
+     "items": [ { "name": "...", "qty": ..., "price": ... } ],
+     "totalAmount": "...",
+     "timeSlot": "...",
+     "status": "READY_FOR_PICKUP",
+     "generatedAt": "ISO timestamp"
+   }
+
+C) QR Display:
+   - Customer: Show QR on Order Detail page when status = Ready for Pickup
+   - Also show the PICKUP CODE as large readable text below QR
+   - Add "Download QR" button so customer can save it
+
+D) QR Scan result page (/scan-order or /verify-order):
+   - Seller/Admin can scan QR using device camera
+   - On scan: show full order details from the encoded data
+   - Show [MARK AS COLLECTED] button
+   - On mark collected: update order to "Completed"
+
+E) Admin & Seller: Can also view QR for any "Ready" order from order detail page
+
+F) Use a well-supported QR library (qrcode.react for React, or qrcode npm package)
+   Ensure QR is high-resolution and scannable
+
+=======================================================================
+6. STORE-SPECIFIC: REPLACEMENT, SIMILAR PRODUCTS & REORDER
+=======================================================================
+Current problems:
+- Product replacement not working
+- Reorder always goes to "Mall of Wah" store instead of original store
+- Similar products show from all stores, not the current store
+
+FIX ALL THREE to be store-scoped:
+
+A) Product Replacement:
+   - Replacement suggestions must ONLY come from the SAME store as the original product
+   - Pass storeId/storeSlug when fetching replacement options
+   - Fix the replacement API/query to filter by store
+
+B) Similar Products:
+   - On product detail page, similar products section must query:
+     WHERE category = currentProduct.category AND storeId = currentStore.id
+   - No products from other stores should appear here
+
+C) Reorder:
+   - When customer clicks "Reorder", re-add items to cart with the ORIGINAL storeId
+   - Fix the reorder function to preserve store association
+   - Cart must correctly attribute each item to its original store
+   - If a customer orders from multiple stores in one session:
+     → Split orders by store (each store gets their own order)
+     → Each seller receives only their store's portion of the order
+     → Customer sees order grouped by store
+
+=======================================================================
+7. CONTACT FORM — EMAILJS INTEGRATION (BOTH FORMS)
+=======================================================================
+Two contact forms need EmailJS:
+  Form 1: Customer website homepage "Contact Us" section
+  Form 2: Footer "Contact Us" popup
+
+Steps:
+a) Install: emailjs-com or @emailjs/browser
+b) Both forms must have fields: 
+   - Your Name, Email Address, Subject, Message
+c) On submit:
+   - Use emailjs.sendForm() or emailjs.send()
+   - Show loading state on button while sending
+   - On success: show "Message sent successfully!" and reset form
+   - On error: show "Failed to send. Please try again."
+d) EmailJS config (use environment variables / .env):
+   VITE_EMAILJS_SERVICE_ID=your_service_id
+   VITE_EMAILJS_TEMPLATE_ID=your_template_id  
+   VITE_EMAILJS_PUBLIC_KEY=your_public_key
+e) Add a note in code: "Replace env values with actual EmailJS credentials from emailjs.com"
+f) Do NOT hardcode credentials in source code
+
+=======================================================================
+8. ORDER CANCELLATION — CUSTOMER NOTIFICATION SYSTEM
+=======================================================================
+Current problem: Customer gets no notification when seller cancels order.
+
+Implement notifications for ALL order actions for customer:
+
+Events to notify customer about:
+- 🔔 Order Received / Confirmed by seller
+- 🔔 Order Being Prepared
+- 🔔 Order Ready for Pickup
+- 🔔 Order Cancelled (by seller OR admin) — with reason if provided
+- 🔔 Order Completed / Collected
+
+Implementation:
+a) Create a Notifications table/collection in DB:
+   { userId, orderId, type, message, isRead, createdAt }
+
+b) When seller cancels: 
+   - Save notification to DB
+   - If using websockets/socket.io: emit to customer's session
+   - If not: notifications visible on next page load via polling or on notification bell click
+
+c) Add a Notification Bell (🔔) icon in customer website header:
+   - Show unread count badge
+   - On click: dropdown showing recent notifications
+   - Mark as read on click/view
+
+d) For seller cancel specifically:
+   - Seller must optionally provide cancellation reason
+   - Reason must appear in customer notification message
+   - Example: "Your order #ORD-123 was cancelled by the store. Reason: Item out of stock"
+
+e) Notification bell should also work for all other status updates listed above
+
+=======================================================================
+GENERAL RULES FOR ALL CHANGES:
+=======================================================================
+- Do not break existing authentication, existing order flow, existing product CRUD
+- Do not change database schema beyond what's needed for above features
+- Do not change UI design/theme/colors except where explicitly required above
+- Test each feature after implementing
+- Add console.error logging where API calls might fail for easier future debugging
+- Keep code clean and commented for the specific sections changed
+
+Start with URL structure first (as it affects routing everywhere), then proceed in order.
+After each major section, confirm it works before moving to the next.
+=======================================================================

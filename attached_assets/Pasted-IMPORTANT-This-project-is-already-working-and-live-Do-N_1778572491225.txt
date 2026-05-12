@@ -1,0 +1,122 @@
+IMPORTANT: This project is already working and live. Do NOT restructure, rewrite, or refactor any existing working functionality. Only make the specific changes listed below. If something is currently working, leave it exactly as it is.
+
+---
+
+PROJECT: Halal Grocery — Website Fixes & Enhancements
+SCOPE: Website only (not mobile app)
+
+---
+
+## 1. CLEAN URL STRUCTURE (SEO-FRIENDLY)
+
+Fix URL routing across the entire website:
+- Store page URL: /store/[store-name-slug]
+  Example: /store/mall-of-wah
+- Product page URL: /store/[store-name-slug]/[product-name-slug]
+  Example: /store/mall-of-wah/organic-basmati-rice
+- Rules for slugs: lowercase only, spaces replaced with hyphens, no special characters, no random IDs, no numbers at end
+- Store name and product name must come directly from the database record name
+- Update all internal links, navigation, redirects to use new URL format
+- Ensure old URLs (if any) redirect to new clean URLs (301 redirect)
+- This must work for ALL stores and ALL products dynamically
+
+---
+
+## 2. ADMIN PORTAL — FIX REVIEWS & STORES DROPDOWN
+
+Fix two broken items in Admin Portal:
+a) Reviews (Order) section: Fix "failed to load reviews" error. Debug the API/database call, fix the query, and display reviews correctly.
+b) Stores dropdown: Stores are not showing in the dropdown. Fix the data fetching so all active stores appear in the dropdown list.
+Do not touch any other part of the Admin Portal.
+
+---
+
+## 3. CUSTOMER WEBSITE — PRODUCT DETAIL PAGE IMAGE SLIDER
+
+On the product detail page, update the image display:
+- Remove the dot/thumbnail switcher below the main image
+- Add left and right arrow buttons on the main image for manual navigation
+- Keep auto-slide functionality (existing timing)
+- Arrows should be visible, styled cleanly, and work on both desktop and mobile
+- Do not change any other part of the product detail page
+
+---
+
+## 4. SELLER PORTAL — ORDERS & PRODUCTS SECTION
+
+a) Products section: For products that have no accepted order yet, add Accept/Reject action buttons inline on the product card/row. Currently this option is missing.
+
+b) New orders display: Show incoming new orders as separate cards at the top of the orders section, clearly labeled "New Orders". Each card must display complete customer order details including:
+   - Delivery address entered by customer
+   - Product replacement preference selected by customer
+   - Special instructions written by customer
+   - Options selected at checkout (How to order, selected time slot, etc.)
+   - All options customer selected during the order flow
+
+c) Order detail view: In the full order detail page, show ALL of the above customer-provided information for every order. This same complete detail must also be visible in Admin portal order detail view.
+
+---
+
+## 5. QR CODE — FULL IMPLEMENTATION
+
+Currently QR code is not working. Implement a complete QR code system:
+- Generate a unique QR code when order status changes to "Ready"
+- QR code must encode: Order ID, Store name, Customer name, Items list with quantities, Total amount, Pickup code (4-6 digit unique code), Order timestamp, Status
+- When scanned, QR code must open a page showing full order detail
+- Customer can view and save their QR code from their order detail page
+- Store Owner (Seller) can scan/view QR code from their order management panel
+- Admin can scan/view QR code from admin order detail
+- Pickup code must be shown prominently on QR result page
+- Follow industry standard grocery pickup QR implementation (similar to Walmart, Kroger pickup systems)
+- QR must be scannable with any standard QR scanner app
+
+---
+
+## 6. SELLER PORTAL — ORDER ITEM STATUS FIX
+
+In Seller Portal, on the Order Detail page:
+- After an order is marked complete, individual product items inside that order still show "Pending"
+- Fix this: item-level status must update dynamically to reflect the actual order stage
+- Status progression must be: Pending → Confirmed → Prepared → Completed
+- When overall order status changes, individual item statuses must update accordingly
+- Do not break any existing order status logic
+
+---
+
+## 7. STORE-SPECIFIC PRODUCT REPLACEMENT, SIMILAR PRODUCTS & REORDER
+
+Fix all three features to be store-scoped:
+a) Product Replacement: When customer selects a replacement, only show products from the SAME store as the original product. Currently not working.
+b) Similar Products: On product detail page, similar/related products must only come from the same store the customer is currently browsing. Fix the query.
+c) Reorder: When customer clicks Reorder, the order must go to the original store the order was placed with. Currently it always redirects to "Mall of Wah" store regardless of original store. Fix this.
+d) Multi-store orders: If a customer orders from multiple stores at once, each store must receive only their own items as a separate order. Do not mix items between stores.
+
+---
+
+## 8. CONTACT FORM — EMAILJS INTEGRATION
+
+There are two contact forms on the customer website:
+a) Home page "Contact Us" section (inline form)
+b) Footer "Contact Us" link (opens a popup/modal)
+
+For BOTH forms, integrate EmailJS:
+- Fields: Your Name, Email Address, Subject, Message
+- Use EmailJS to send the form submission to the configured email
+- Add proper form validation (all fields required, valid email format)
+- Show success message after successful submission
+- Show error message if submission fails
+- Do not change the visual design of the forms, only add the functionality
+- Use environment variables for EmailJS Service ID, Template ID, and Public Key
+
+---
+
+## 9. CUSTOMER NOTIFICATIONS
+
+When a store owner/seller cancels an order:
+- Immediately send a notification to the customer
+- Notification must appear in the customer's notification panel/bell icon
+- Notification text should clearly state which order was cancelled and by which store
+- Extend this so customers receive notifications for ALL order status changes:
+  Placed → Confirmed → Prepared → Ready for Pickup → Completed → Cancelled
+- Each notification must include: order reference, store name, new status, timestamp
+- Do not remove or change any existing notification logic, only add missing triggers
