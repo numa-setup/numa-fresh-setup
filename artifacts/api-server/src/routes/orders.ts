@@ -336,6 +336,35 @@ router.post("/:orderId/cancel", authenticate, async (req: AuthRequest, res) => {
         note: reason,
         createdBy: req.user!.userId,
       });
+
+      // Notify customer their cancellation was processed
+      createNotification(
+        req.user!.userId,
+        "ORDER_STATUS",
+        "Order Cancelled",
+        `Your order #${order.orderNumber} has been cancelled successfully.`,
+        { orderId: order.id, orderNumber: order.orderNumber, status: "CANCELLED" },
+        order.id
+      ).catch(() => {});
+
+      // Notify store owner about the customer cancellation
+      db.select({ ownerId: storesTable.ownerId })
+        .from(storesTable)
+        .where(eq(storesTable.id, order.storeId))
+        .limit(1)
+        .then(([store]) => {
+          if (store?.ownerId) {
+            return createNotification(
+              store.ownerId,
+              "ORDER_STATUS",
+              "Order Cancelled by Customer",
+              `Order #${order.orderNumber} was cancelled by the customer.`,
+              { orderId: order.id, orderNumber: order.orderNumber, status: "CANCELLED" },
+              order.id
+            );
+          }
+        })
+        .catch(() => {});
     } else {
       const [latest] = await db.select().from(ordersTable).where(eq(ordersTable.id, order.id)).limit(1);
       updated = latest ?? order;

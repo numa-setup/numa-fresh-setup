@@ -175,7 +175,7 @@ export default function AdminProductsPendingPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <Link href={`/stores/${product.store?.slug}`} target="_blank">
+                  <Link href={`/store/${product.store?.slug}`} target="_blank">
                     <Button variant="ghost" size="sm" className="h-8 text-xs gap-1.5">
                       <Eye className="w-3.5 h-3.5" /> Preview
                     </Button>

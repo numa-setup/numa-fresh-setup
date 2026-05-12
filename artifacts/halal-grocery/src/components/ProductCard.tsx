@@ -68,12 +68,13 @@ export function ProductCard({ product, storeId, storeSlug, storeName }: ProductC
   );
   const realImg = (product.images || []).find(u => u && u.trim()) || (product as any).imageUrl;
   const image = realImg || PLACEHOLDER_IMG;
-  const productHref = `/products/${product.slug || product.id}`;
-  const storeHref = storeSlug
-    ? `/stores/${storeSlug}`
-    : (product as any).store?.slug
-      ? `/stores/${(product as any).store.slug}`
-      : null;
+  const resolvedStoreSlug = storeSlug || (product as any).store?.slug;
+  const productHref = resolvedStoreSlug
+    ? `/store/${resolvedStoreSlug}/${product.slug || product.id}`
+    : `/products/${product.slug || product.id}`;
+  const storeHref = resolvedStoreSlug
+    ? `/store/${resolvedStoreSlug}`
+    : null;
 
   const displayStoreName = storeName || (product as any).store?.name;
   const displayStoreSlug = storeSlug || (product as any).store?.slug;
@@ -210,5 +211,5 @@ export function ProductCard({ product, storeId, storeSlug, storeName }: ProductC
 }
 
 function displayStoreHref(slug?: string) {
-  return slug ? `/stores/${slug}` : null;
+  return slug ? `/store/${slug}` : null;
 }

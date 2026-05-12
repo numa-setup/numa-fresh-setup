@@ -158,7 +158,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
   const goToStore = () => {
     if (storeSlug) {
       onClose();
-      setLocation(`/stores/${storeSlug}`);
+      setLocation(`/store/${storeSlug}`);
     }
   };
 

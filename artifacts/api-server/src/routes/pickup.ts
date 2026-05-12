@@ -41,9 +41,9 @@ router.get("/local-url", (_req, res) => {
   }
 
   const localIP = getLocalIP();
-  // FRONTEND_PORT is optional override; default is always 5173 (Vite dev server).
+  // FRONTEND_PORT is optional override; default is 3000 (Vite dev server in this project).
   // We must NOT fall back to process.env.PORT here — that is the backend port (8080).
-  const frontendPort = process.env.FRONTEND_PORT || "5173";
+  const frontendPort = process.env.FRONTEND_PORT || "3000";
   const baseUrl = localIP === "localhost"
     ? `http://localhost:${frontendPort}`
     : `http://${localIP}:${frontendPort}`;

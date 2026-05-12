@@ -49,7 +49,7 @@ httpServer.listen(port, () => {
       }
       if (localIP !== "localhost") break;
     }
-    const frontendPort = process.env.FRONTEND_PORT || "5173";
+    const frontendPort = process.env.FRONTEND_PORT || "3000";
     logger.info(`[QR codes] Auto-detected base URL: http://${localIP}:${frontendPort} — phones on same WiFi can scan`);
   }
 });

@@ -4,6 +4,34 @@ import { Send, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import emailjs from '@emailjs/browser';
+import { toast } from 'sonner';
+
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string | undefined;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string | undefined;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string | undefined;
+const EMAILJS_CONFIGURED = !!(EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_PUBLIC_KEY);
+
+async function sendContactEmail(params: { name: string; email: string; subject: string; message: string }) {
+  if (EMAILJS_CONFIGURED) {
+    await emailjs.send(
+      EMAILJS_SERVICE_ID!,
+      EMAILJS_TEMPLATE_ID!,
+      {
+        from_name: params.name,
+        from_email: params.email,
+        reply_to: params.email,
+        subject: params.subject || 'Contact via Numa Fresh website',
+        message: params.message,
+      },
+      EMAILJS_PUBLIC_KEY!
+    );
+  } else {
+    const body = `Name: ${params.name}\nEmail: ${params.email}\n\n${params.message}`;
+    window.location.href = `mailto:numasetup@gmail.com?subject=${encodeURIComponent(params.subject || 'Contact via Numa Fresh website')}&body=${encodeURIComponent(body)}`;
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
 
 export function ContactUs({ inModal = false }: { inModal?: boolean }) {
   const [name, setName] = useState('');
@@ -13,19 +41,21 @@ export function ContactUs({ inModal = false }: { inModal?: boolean }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
-    const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
-    const url = `mailto:numasetup@gmail.com?subject=${encodeURIComponent(subject || 'Contact via Numa Fresh website')}&body=${encodeURIComponent(body)}`;
-    try { window.location.href = url; } catch { /* noop */ }
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await sendContactEmail({ name, email, subject, message });
       setSubmitted(true);
       setName(''); setEmail(''); setSubject(''); setMessage('');
+      toast.success('Message sent! We\'ll get back to you soon.');
       setTimeout(() => setSubmitted(false), 5000);
-    }, 600);
+    } catch {
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (inModal) {
@@ -58,7 +88,11 @@ export function ContactUs({ inModal = false }: { inModal?: boolean }) {
           <Button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-11 gap-2 font-semibold">
             {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</> : submitted ? <><CheckCircle className="w-4 h-4" /> Sent!</> : <><Send className="w-4 h-4" /> Send Message</>}
           </Button>
-          {submitted && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-primary font-medium text-center">Your email client should have opened with the message ready to send.</motion.p>}
+          {submitted && (
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-primary font-medium text-center">
+              Message sent! We'll get back to you shortly.
+            </motion.p>
+          )}
         </form>
       </div>
     );
@@ -157,7 +191,7 @@ export function ContactUs({ inModal = false }: { inModal?: boolean }) {
               animate={{ opacity: 1, y: 0 }}
               className="text-sm text-primary font-medium text-center"
             >
-              Your email client should have opened with the message ready to send.
+              Message sent! We'll get back to you shortly.
             </motion.p>
           )}
         </motion.form>

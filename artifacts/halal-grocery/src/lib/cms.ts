@@ -88,7 +88,7 @@ export const CMS_DEFAULTS: CmsSettings = {
       text: '🎉 Al-Madina Halal — Get 15% off your first order this week!',
       code: 'NUMA15',
       codeLabel: 'Use code',
-      linkUrl: '/stores/al-madina-halal-mississauga',
+      linkUrl: '/store/al-madina-halal-mississauga',
       linkLabel: 'Shop Now',
       bgFrom: '#0D3327',
       bgVia: '#1B4D3E',

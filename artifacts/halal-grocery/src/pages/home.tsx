@@ -350,7 +350,7 @@ export default function HomePage() {
 
   const goToStore = (slug: string) => {
     setSearchOpen(false);
-    setLocation(`/stores/${slug}`);
+    setLocation(`/store/${slug}`);
   };
 
   const handleSearch = (e: React.FormEvent) => {

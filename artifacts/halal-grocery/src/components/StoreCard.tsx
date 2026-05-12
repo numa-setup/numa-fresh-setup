@@ -18,7 +18,7 @@ export function StoreCard({ store, featured }: StoreCardProps) {
   }, [initialImage]);
 
   return (
-    <Link href={`/stores/${store.slug}`} className="group block">
+    <Link href={`/store/${store.slug}`} className="group block">
       <div className="bg-card rounded-xl sm:rounded-2xl border border-border/50 overflow-hidden hg-shadow-sm hover:hg-shadow-lg transition-all duration-300 hover:-translate-y-0.5">
         {/* Image */}
         <div className="relative h-28 sm:h-44 overflow-hidden bg-muted">

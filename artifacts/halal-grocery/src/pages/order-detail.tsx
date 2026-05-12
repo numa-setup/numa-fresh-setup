@@ -157,7 +157,7 @@ export default function OrderDetailPage() {
                 {order.store.address}, {order.store.city}
               </p>
             </div>
-            <Link href={`/stores/${order.store.slug}`}>
+            <Link href={`/store/${order.store.slug}`}>
               <Button variant="outline" size="sm">View Store</Button>
             </Link>
           </div>

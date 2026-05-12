@@ -103,6 +103,18 @@ function OrderCard({ order, onAccept, onDecline, loading }: any) {
           )}
         </div>
 
+        {order.orderType === 'STORE_DELIVERY' && order.deliveryAddress && (
+          <div className="text-xs bg-blue-50 border border-blue-100 rounded-lg p-2 mb-2 text-blue-800">
+            📍 {[order.deliveryAddress.line1 || order.deliveryAddress.street, order.deliveryAddress.city, order.deliveryAddress.province].filter(Boolean).join(', ')}
+          </div>
+        )}
+
+        {order.substitutionPref && order.substitutionPref !== 'NO_REPLACEMENT' && (
+          <div className="text-xs bg-amber-50 border border-amber-100 rounded-lg p-2 mb-2 text-amber-800">
+            🔄 Substitution: {order.substitutionPref === 'REPLACE_SIMILAR' ? 'Replace with similar item' : order.substitutionPref === 'CHOOSE_SPECIFIC' ? 'Choose specific replacement' : 'Contact customer first'}
+          </div>
+        )}
+
         {order.specialInstructions && (
           <div className="text-xs bg-muted/50 rounded-lg p-2 mb-3 text-muted-foreground">
             💬 "{order.specialInstructions}"

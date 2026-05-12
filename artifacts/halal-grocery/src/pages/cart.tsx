@@ -438,7 +438,7 @@ export default function CartPage() {
                     className={`flex items-start gap-3 px-4 py-4 transition-all duration-280 ${isRemoving ? 'opacity-0 translate-x-4' : 'opacity-100'}`}
                   >
                     {/* Product image — clickable to detail */}
-                    <Link href={`/products/${item.product.slug || item.product.id}`} className="shrink-0">
+                    <Link href={storeSlug ? `/store/${storeSlug}/${item.product.slug || item.product.id}` : `/products/${item.product.slug || item.product.id}`} className="shrink-0">
                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted">
                         <img
                           src={imgSrc}
@@ -451,7 +451,7 @@ export default function CartPage() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <Link href={`/products/${item.product.slug || item.product.id}`}>
+                      <Link href={storeSlug ? `/store/${storeSlug}/${item.product.slug || item.product.id}` : `/products/${item.product.slug || item.product.id}`}>
                         <p className="font-semibold text-sm leading-tight hover:text-primary transition-colors">{item.product.name}</p>
                       </Link>
                       <p className="text-sm text-muted-foreground mt-0.5">${item.product.price.toFixed(2)}</p>
@@ -510,7 +510,7 @@ export default function CartPage() {
             {storeSlug && (
               <div className="border-t border-border/30 px-4 py-3">
                 <button
-                  onClick={() => setLocation(`/stores/${storeSlug}`)}
+                  onClick={() => setLocation(`/store/${storeSlug}`)}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-primary/40 text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
                 >
                   <Store className="w-4 h-4" /> Add more products from {storeName || 'store'}

@@ -200,6 +200,15 @@ router.patch("/orders/:id/confirm", async (req: AuthRequest, res) => {
     await db.update(ordersTable).set({ status: "STORE_CONFIRMED", updatedAt: new Date() }).where(eq(ordersTable.id, order.id));
     await db.insert(orderStatusHistoryTable).values({ orderId: order.id, status: "STORE_CONFIRMED", note: "Confirmed by store" });
 
+    createNotification(
+      order.customerId,
+      "ORDER_STATUS",
+      "Order Confirmed",
+      `Your order #${order.orderNumber} has been confirmed by the store and is being prepared.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: "STORE_CONFIRMED" },
+      order.id
+    ).catch(() => {});
+
     res.json({ success: true, status: "STORE_CONFIRMED" });
   } catch (err) {
     req.log.error({ err }, "Confirm order error");
@@ -219,6 +228,15 @@ router.patch("/orders/:id/reject", async (req: AuthRequest, res) => {
 
     await db.update(ordersTable).set({ status: "CANCELLED", cancellationReason: reason, updatedAt: new Date() }).where(eq(ordersTable.id, order.id));
     await db.insert(orderStatusHistoryTable).values({ orderId: order.id, status: "CANCELLED", note: reason });
+
+    createNotification(
+      order.customerId,
+      "ORDER_STATUS",
+      "Order Cancelled",
+      `Your order #${order.orderNumber} has been cancelled by the store. Reason: ${reason}.`,
+      { orderId: order.id, orderNumber: order.orderNumber, status: "CANCELLED" },
+      order.id
+    ).catch(() => {});
 
     res.json({ success: true, status: "CANCELLED" });
   } catch (err) {
@@ -253,6 +271,13 @@ router.patch("/orders/:id/status", async (req: AuthRequest, res) => {
 
     await db.update(ordersTable).set(statusUpdateData).where(eq(ordersTable.id, order.id));
     await db.insert(orderStatusHistoryTable).values({ orderId: order.id, status, note: note || `Status updated to ${status}` });
+
+    // When order completes, mark any PENDING items as FOUND so they don't show as unresolved
+    if (status === "COMPLETED") {
+      await db.update(orderItemsTable)
+        .set({ itemStatus: "FOUND", updatedAt: new Date() })
+        .where(and(eq(orderItemsTable.orderId, order.id), eq(orderItemsTable.itemStatus, "PENDING")));
+    }
 
     const statusLabels: Record<string, string> = {
       STORE_CONFIRMED: "Order Confirmed",

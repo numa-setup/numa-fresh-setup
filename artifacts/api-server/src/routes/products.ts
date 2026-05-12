@@ -104,11 +104,14 @@ router.get("/:productSlug/related", async (req, res) => {
       .split(/\s+/)
       .filter(w => w.length > 2 && !STOP_WORDS.has(w));
 
+    const storeId = req.query.storeId as string | undefined;
+
     const baseConditions: any[] = [
       eq(productsTable.isActive, true),
       eq(productsTable.isApproved, true),
       ne(productsTable.id, base.id),
     ];
+    if (storeId) baseConditions.push(eq(productsTable.storeId, storeId));
 
     // Name-only match: ALL keywords must appear in the name (AND), so "Chicken Breast"
     // matches "Boneless Chicken Breast" but never "Chicken Wings" or "Chicken Curry".

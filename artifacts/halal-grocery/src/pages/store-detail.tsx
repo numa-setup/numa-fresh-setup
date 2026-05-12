@@ -54,7 +54,7 @@ function ProductCard({ product, storeId, storeSlug, storeName, onMeatClick }: {
   const image = product.images?.[0] || null;
   const [imageErrored, setImageErrored] = useState(false);
   const isAvailable = (product as any).isAvailable !== false && product.isActive !== false && (product.stockQty ?? 1) > 0;
-  const productHref = `/products/${product.slug || product.id}`;
+  const productHref = `/store/${storeSlug}/${product.slug || product.id}`;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -355,13 +355,13 @@ export default function StoreDetailPage() {
         <meta property="og:description" content={store.description || `Order fresh halal groceries from ${store.name} in ${store.city}.`} />
         <meta property="og:type" content="restaurant" />
         {store.logo && <meta property="og:image" content={store.logo} />}
-        <link rel="canonical" href={`https://numafresh.com/stores/${store.slug}`} />
+        <link rel="canonical" href={`https://numafresh.com/store/${store.slug}`} />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "GroceryStore",
           "name": store.name,
           "description": store.description || `Certified halal grocery store in ${store.city}`,
-          "url": `https://numafresh.com/stores/${store.slug}`,
+          "url": `https://numafresh.com/store/${store.slug}`,
           "telephone": store.phone,
           "email": store.email,
           "address": {

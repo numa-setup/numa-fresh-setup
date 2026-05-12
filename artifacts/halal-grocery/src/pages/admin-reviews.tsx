@@ -43,6 +43,7 @@ export default function AdminReviewsPage() {
   const [replyId, setReplyId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [saving, setSaving] = useState<string | null>(null);
+  const [allStores, setAllStores] = useState<{ id: string; name: string }[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -62,7 +63,16 @@ export default function AdminReviewsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const stores = Array.from(new Map(reviews.map(r => [r.storeId, r.storeName])).entries());
+  // Load all stores independently so the dropdown is always populated
+  useEffect(() => {
+    api.get<{ stores: { id: string; name: string }[] }>("/api/admin/stores?limit=200")
+      .then(d => setAllStores(d.stores ?? []))
+      .catch(() => {});
+  }, []);
+
+  const stores = allStores.length > 0
+    ? allStores
+    : Array.from(new Map(reviews.map(r => [r.storeId, r.storeName ?? r.storeId])).entries()).map(([id, name]) => ({ id, name }));
 
   const toggleVisibility = async (r: Review) => {
     setSaving(r.id);
@@ -137,7 +147,7 @@ export default function AdminReviewsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stores</SelectItem>
-              {stores.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
+              {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
             </SelectContent>
           </Select>
 

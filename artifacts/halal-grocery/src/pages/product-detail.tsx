@@ -35,8 +35,8 @@ function StockBadge({ qty, threshold }: { qty: number; threshold?: number | null
 }
 
 export default function ProductDetailPage() {
-  const params = useParams<{ slug: string }>();
-  const slug = params?.slug || '';
+  const params = useParams<{ slug?: string; productSlug?: string }>();
+  const slug = params?.slug || params?.productSlug || '';
   const { items, addItem, updateQuantity, setStoreInfo, updateNote } = useCart();
 
   const cartItem = items.find(i => i.product.slug === slug || i.product.id === slug);
@@ -185,14 +185,14 @@ export default function ProductDetailPage() {
           {product.store && (
             <>
               <ChevronRight className="w-3 h-3" />
-              <Link href={`/stores/${product.store.slug}`} className="hover:text-foreground transition-colors">{product.store.name}</Link>
+              <Link href={`/store/${product.store.slug}`} className="hover:text-foreground transition-colors">{product.store.name}</Link>
             </>
           )}
           <ChevronRight className="w-3 h-3" />
           <span className="text-foreground font-medium truncate max-w-[200px]">{product.name}</span>
         </nav>
 
-        <Link href={product.store ? `/stores/${product.store.slug}` : '/'}>
+        <Link href={product.store ? `/store/${product.store.slug}` : '/'}>
           <Button variant="ghost" size="sm" className="gap-1.5 mb-5 -ml-2 text-muted-foreground">
             <ArrowLeft className="w-4 h-4" /> Back to Products
           </Button>
@@ -254,14 +254,14 @@ export default function ProductDetailPage() {
                 <Heart className={`w-5 h-5 ${saved.isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
               </button>
 
-              {/* Prev/Next — only when >1 image */}
+              {/* Prev/Next — always visible when >1 image */}
               {images.length > 1 && (
                 <>
                   <button
                     type="button"
                     onClick={goPrev}
                     aria-label="Previous image"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-border/40 flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-border/40 flex items-center justify-center shadow transition-transform hover:scale-110 z-10"
                   >
                     <ChevronLeft className="w-5 h-5 text-foreground" />
                   </button>
@@ -269,45 +269,13 @@ export default function ProductDetailPage() {
                     type="button"
                     onClick={goNext}
                     aria-label="Next image"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-border/40 flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm border border-border/40 flex items-center justify-center shadow transition-transform hover:scale-110 z-10"
                   >
                     <ChevronRight className="w-5 h-5 text-foreground" />
                   </button>
-
-                  {/* Dot indicators */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-2.5 py-1.5 z-10">
-                    {images.map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setActiveImg(i)}
-                        aria-label={`Go to image ${i + 1}`}
-                        className={`rounded-full transition-all ${
-                          i === safeIndex ? 'w-5 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/60 hover:bg-white/90'
-                        }`}
-                      />
-                    ))}
-                  </div>
                 </>
               )}
             </div>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="flex gap-2">
-                {images.slice(0, 5).map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImg(i)}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${
-                      activeImg === i ? 'border-primary shadow-md' : 'border-border/40 hover:border-border/80'
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
 
             {/* Halal cert guarantee */}
             {product.isHalalCertified && (
@@ -359,7 +327,7 @@ export default function ProductDetailPage() {
 
               {/* Store card */}
               {product.store && (
-                <Link href={`/stores/${product.store.slug}`}>
+                <Link href={`/store/${product.store.slug}`}>
                   <div className="flex items-center gap-3 bg-muted/40 border border-border/40 rounded-2xl px-4 py-3 hover:border-primary/30 hover:bg-muted/60 transition-all cursor-pointer mb-5">
                     <div className="w-10 h-10 rounded-xl hg-gradient-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
                       {product.store.name[0]}
@@ -681,7 +649,7 @@ function RelatedProducts({ slug }: { slug: string }) {
                       <p className="text-[13px] font-medium leading-snug line-clamp-2 hover:text-primary transition-colors">{p.name}</p>
                     </Link>
                     {pStore?.name && (
-                      <Link href={`/stores/${pStore.slug}`}>
+                      <Link href={`/store/${pStore.slug}`}>
                         <p className="text-[11px] text-muted-foreground hover:text-primary/70 transition-colors truncate">{pStore.name}</p>
                       </Link>
                     )}

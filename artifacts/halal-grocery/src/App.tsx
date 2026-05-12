@@ -228,6 +228,8 @@ function Router() {
         <Route path="/" component={() => <HomeLayout><HomePage /></HomeLayout>} />
         <Route path="/stores" component={() => <AppLayout><StoresPage /></AppLayout>} />
         <Route path="/stores/:storeSlug" component={() => <AppLayout><StoreDetailPage /></AppLayout>} />
+        <Route path="/store/:storeSlug" component={() => <AppLayout><StoreDetailPage /></AppLayout>} />
+        <Route path="/store/:storeSlug/:productSlug" component={() => <AppLayout><ProductDetailPage /></AppLayout>} />
         <Route path="/products" component={() => <AppLayout><ProductsPage /></AppLayout>} />
         <Route path="/products/:slug" component={() => <AppLayout><ProductDetailPage /></AppLayout>} />
         <Route path="/privacy" component={() => <AppLayout><PrivacyPage /></AppLayout>} />

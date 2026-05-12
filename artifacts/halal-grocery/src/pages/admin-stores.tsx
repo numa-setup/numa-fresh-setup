@@ -671,7 +671,7 @@ export default function AdminStores() {
                         )}
                         {/* View store link */}
                         {detail.slug && (
-                          <a href={`/stores/${detail.slug}`} target="_blank" rel="noreferrer"
+                          <a href={`/store/${detail.slug}`} target="_blank" rel="noreferrer"
                             className="flex items-center gap-1.5 text-xs text-primary hover:underline">
                             <ArrowUpRight className="w-3 h-3" /> View on website
                           </a>

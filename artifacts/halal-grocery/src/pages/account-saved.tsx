@@ -54,7 +54,7 @@ function SavedRow({ item }: { item: ReturnType<typeof useSavedProducts>['data'] 
             <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-[10px] rounded-md hidden sm:inline-flex">Halal</Badge>
           )}
         </div>
-        <Link href={`/stores/${item.store.slug}`}>
+        <Link href={`/store/${item.store.slug}`}>
           <p className="text-xs text-muted-foreground hover:text-primary truncate cursor-pointer">{item.store.name} · {item.store.city}</p>
         </Link>
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
